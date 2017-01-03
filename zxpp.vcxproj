@@ -21,9 +21,14 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\window.cpp" />
+    <ClCompile Include="src\z80.cpp" />    
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\window.h" />
+    <ClInclude Include="src\z80.h" />
+    <ClInclude Include="src\instruction.h" />
+    <ClInclude Include="src\instructions.h" />
+    <ClInclude Include="src\memory.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>
