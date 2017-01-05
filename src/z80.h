@@ -19,7 +19,7 @@ struct WordFlags {
             bool XF : 1;        // Undocumented: Copy of bit 3 of the result
             bool HF : 1;        // Half carry
             bool YF : 1;        // Undocumented: Copy of bit 5 of the result
-            bool ZF : 1;        // Zero flags
+            bool ZF : 1;        // Zero flag
             bool SF : 1;        // Is result negative? (Copy of MSB)
         };
     } low;
