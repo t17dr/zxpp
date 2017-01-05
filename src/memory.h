@@ -18,4 +18,23 @@ struct Spectrum48KMemory {
     uint16_t printerBuffer_size = 0x00FF;
     uint16_t systemVariables_size = 0x00BF;
     uint16_t userMemory_size = 0xA28C;
+
+    inline uint8_t& operator[](uint16_t i)
+    {
+        return memory[i];
+    }
+
+    inline const uint8_t& operator[](uint16_t i) const
+    {
+        return memory[i];
+    }
+
+    uint8_t* begin() { return memory; }
+    uint8_t* end()   { return memory + 0xffff; }
+
+    uint8_t const* cbegin() const { return memory; }
+    uint8_t const* cend()   const { return memory + 0xffff; }
+    uint8_t const* begin()  const { return cbegin(); }
+    uint8_t const* end()    const { return cend(); }
+
 };
