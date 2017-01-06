@@ -29,6 +29,7 @@
     <ClInclude Include="src\instruction.h" />
     <ClInclude Include="src\instructions.h" />
     <ClInclude Include="src\memory.h" />
+    <ClInclude Include="src\defines.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>
