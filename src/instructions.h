@@ -390,5 +390,10 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.high = d[0]; } };
     instructions[oc] = i;
 
+    // DAA
+    oc = {0,0,0x0027};
+    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); } };
+    instructions[oc] = i;
+
     return instructions;
 }

@@ -205,3 +205,63 @@ constexpr void setUndocumentedFlags(INT result, Z80Registers* r)
     r->AF.bytes.low.XF = (bool) ( (result >> 3) & 0x01 );
     r->AF.bytes.low.YF = (bool) ( (result >> 5) & 0x01 );
 }
+
+bool daaCarry(bool C, uint8_t A);
+bool daaHalfCarry(bool N, bool H, uint8_t A);
+
+// Decimal adjust instruction
+// Used for BCD number arithmetics
+void daa(Z80Registers* r)
+{
+    uint8_t A = r->AF.bytes.high;
+    bool H = r->AF.bytes.low.HF;
+    bool C = r->AF.bytes.low.CF;
+    bool N = r->AF.bytes.low.NF;
+
+    bool newCarry = daaCarry(C, A);
+    bool newHalfCarry = daaHalfCarry(N, H, A);
+
+    uint8_t adjust = 0;
+
+    if ( (A & 0xF) > 9 || H )
+    {
+        A = ( N ) ? A -= 0x06 : A += 0x06;
+    }
+    if ( (A & 0xF0) > 0x90 || C )
+    {
+        A = ( N ) ? A -= 0x60 : A += 0x60;
+    }
+
+    r->AF.bytes.high = A;
+    r->AF.bytes.low.CF = newCarry;
+    r->AF.bytes.low.HF = newHalfCarry;
+    r->AF.bytes.low.SF = A >> 7;
+    setUndocumentedFlags(A, r);
+    r->AF.bytes.low.ZF = A == 0;
+}
+
+// Carry flag after DAA operation
+bool daaCarry(bool C, uint8_t A)
+{
+    if (C) { return true; }
+    if ( (A & 0xF) < 10 && (A & 0xF0) < 0xA0 ) { return false; }
+    if ( (A & 0xF) > 9 && (A & 0xF0) < 0x90 ) { return false; }
+    return true;
+}
+
+// Half carry flag after DAA operation
+bool daaHalfCarry(bool N, bool H, uint8_t A)
+{
+    if (!N)
+    {
+        if ((A & 0xF) < 10) { return false; }
+        else { return true; }
+    }
+    else 
+    {
+        if (N && !H) { return false; }
+        if ((A & 0xF) > 5 ) { return false; }
+        return true;
+    }
+}
+
