@@ -217,8 +217,57 @@ int main(int argc, char* args[])
     std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
     std::cout << "C (should 0): " << +r->AF.bytes.low.CF << std::endl;
 
-    // TODO odzkouset vsechny aktualni instrukce, flagy - podle manualu! Pak commitnout
-    // jaktoze nikde neni overflow flag? je to spravne?
+    oc = {0,0,0x0017};
+    std::cout << "RLA" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    r->AF.bytes.high = 128;
+    r->AF.bytes.low.CF = 0;
+    instructions[oc].execute(&proc, &memory, data);
+    std::cout << "A (should 0): " << +r->AF.bytes.high << std::endl;
+    // std::cout << "S (should 0): " << +r->AF.bytes.low.SF << std::endl;
+    // std::cout << "Z (should 1): " << +r->AF.bytes.low.ZF << std::endl;
+    std::cout << "H (should 0): " << +r->AF.bytes.low.HF << std::endl;
+    // std::cout << "P (should 0): " << +r->AF.bytes.low.PF << std::endl;
+    std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
+    std::cout << "C (should 1): " << +r->AF.bytes.low.CF << std::endl;
+    instructions[oc].execute(&proc, &memory, data);
+    std::cout << "A (should 1): " << +r->AF.bytes.high << std::endl;
+    // std::cout << "S (should 0): " << +r->AF.bytes.low.SF << std::endl;
+    // std::cout << "Z (should 1): " << +r->AF.bytes.low.ZF << std::endl;
+    std::cout << "H (should 0): " << +r->AF.bytes.low.HF << std::endl;
+    // std::cout << "P (should 0): " << +r->AF.bytes.low.PF << std::endl;
+    std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
+    std::cout << "C (should 0): " << +r->AF.bytes.low.CF << std::endl;
+    instructions[oc].execute(&proc, &memory, data);
+    std::cout << "A (should 2): " << +r->AF.bytes.high << std::endl;
+    // std::cout << "S (should 0): " << +r->AF.bytes.low.SF << std::endl;
+    // std::cout << "Z (should 1): " << +r->AF.bytes.low.ZF << std::endl;
+    std::cout << "H (should 0): " << +r->AF.bytes.low.HF << std::endl;
+    // std::cout << "P (should 0): " << +r->AF.bytes.low.PF << std::endl;
+    std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
+    std::cout << "C (should 0): " << +r->AF.bytes.low.CF << std::endl;
+
+    oc = {0,0,0x001F};
+    std::cout << "RRA" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    r->AF.bytes.high = 1;
+    r->AF.bytes.low.CF = 0;
+    instructions[oc].execute(&proc, &memory, data);
+    std::cout << "A (should 0): " << +r->AF.bytes.high << std::endl;
+    // std::cout << "S (should 0): " << +r->AF.bytes.low.SF << std::endl;
+    // std::cout << "Z (should 1): " << +r->AF.bytes.low.ZF << std::endl;
+    std::cout << "H (should 0): " << +r->AF.bytes.low.HF << std::endl;
+    // std::cout << "P (should 0): " << +r->AF.bytes.low.PF << std::endl;
+    std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
+    std::cout << "C (should 1): " << +r->AF.bytes.low.CF << std::endl;
+    instructions[oc].execute(&proc, &memory, data);
+    std::cout << "A (should 128): " << +r->AF.bytes.high << std::endl;
+    // std::cout << "S (should 0): " << +r->AF.bytes.low.SF << std::endl;
+    // std::cout << "Z (should 1): " << +r->AF.bytes.low.ZF << std::endl;
+    std::cout << "H (should 0): " << +r->AF.bytes.low.HF << std::endl;
+    // std::cout << "P (should 0): " << +r->AF.bytes.low.PF << std::endl;
+    std::cout << "N (should 0): " << +r->AF.bytes.low.NF << std::endl;
+    std::cout << "C (should 0): " << +r->AF.bytes.low.CF << std::endl;
 
     // Main loop
 	bool quit = false;

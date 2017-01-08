@@ -25,6 +25,30 @@ constexpr INT ror(INT val)
     return (val >> 1) | (val << (sizeof(INT)*CHAR_BIT-1));
 }
 
+// Circular bit rotation left through carry bit
+template <typename INT>
+constexpr INT rolc(INT& val, bool carry)
+{
+    static_assert(std::is_unsigned<INT>::value,
+                  "Rotate Left only makes sense for unsigned types.");
+    bool carryOld = carry;
+    carry = (bool) (val >> (sizeof(INT)*CHAR_BIT-1));
+    val = (val << 1) | (carryOld & 0x01);
+    return carry;
+}
+
+// Circular bit rotation right through carry bit
+template <typename INT>
+constexpr INT rorc(INT& val, bool carry)
+{
+    static_assert(std::is_unsigned<INT>::value,
+                  "Rotate Right only makes sense for unsigned types.");
+    bool carryOld = carry;
+    carry = (bool) (val & 0x01);
+    val = (val >> 1) | ((carryOld & 0x01) << (sizeof(INT)*CHAR_BIT-1));
+    return carry;
+}
+
 // Sign of val
 template <typename T>
 int sgn(T val)
