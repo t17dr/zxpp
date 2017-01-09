@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H
 
 #include <stdint.h>
 #include <vector>
@@ -14,3 +15,5 @@ struct Instruction {
     // Execute this instruction
     void (*execute)(Z80*, Spectrum48KMemory*, std::vector<uint8_t>);
 };
+
+#endif

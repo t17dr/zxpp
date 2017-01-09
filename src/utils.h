@@ -1,4 +1,7 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
+
+#include "defines.h"
 
 #include <type_traits>
 #include <limits>
@@ -211,7 +214,7 @@ bool daaHalfCarry(bool N, bool H, uint8_t A);
 
 // Decimal adjust instruction
 // Used for BCD number arithmetics
-void daa(Z80Registers* r)
+inline void daa(Z80Registers* r)
 {
     uint8_t A = r->AF.bytes.high;
     bool H = r->AF.bytes.low.HF;
@@ -241,7 +244,7 @@ void daa(Z80Registers* r)
 }
 
 // Carry flag after DAA operation
-bool daaCarry(bool C, uint8_t A)
+inline bool daaCarry(bool C, uint8_t A)
 {
     if (C) { return true; }
     if ( (A & 0xF) < 10 && (A & 0xF0) < 0xA0 ) { return false; }
@@ -250,7 +253,7 @@ bool daaCarry(bool C, uint8_t A)
 }
 
 // Half carry flag after DAA operation
-bool daaHalfCarry(bool N, bool H, uint8_t A)
+inline bool daaHalfCarry(bool N, bool H, uint8_t A)
 {
     if (!N)
     {
@@ -265,3 +268,4 @@ bool daaHalfCarry(bool N, bool H, uint8_t A)
     }
 }
 
+#endif

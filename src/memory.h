@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MEMORY_H
+#define MEMORY_H
 
 #include <stdint.h>
 
@@ -38,3 +39,5 @@ struct Spectrum48KMemory {
     uint8_t const* end()    const { return cend(); }
 
 };
+
+#endif

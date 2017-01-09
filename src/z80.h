@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Z80_H
+#define Z80_H
 
 #include <stdint.h>
 
@@ -102,3 +103,5 @@ class Z80 {
         bool m_isHalted;
         bool m_isWaiting;               // WAIT pin active
 };
+
+#endif

@@ -22,14 +22,17 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\window.cpp" />
     <ClCompile Include="src\z80.cpp" />    
+    <ClCompile Include="src\instructions.cpp" />    
+    <ClCompile Include="src\tests\tests.cpp" />    
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\defines.h" />
     <ClInclude Include="src\window.h" />
     <ClInclude Include="src\z80.h" />
     <ClInclude Include="src\instruction.h" />
     <ClInclude Include="src\instructions.h" />
     <ClInclude Include="src\memory.h" />
-    <ClInclude Include="src\defines.h" />
+    <ClInclude Include="src\tests\tests.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>
