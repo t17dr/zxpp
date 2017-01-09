@@ -28,3 +28,8 @@ Z80Registers* Z80::getRegisters()
 {
     return &m_registers;
 }
+
+void Z80::halt()
+{
+    m_isHalted = true;
+}

@@ -94,7 +94,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // LD A,(BC)
     oc = {0,0,0x000A};
-    i = { 7, 7, 1, INST{
+    i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
         }
     };
@@ -243,7 +243,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // LD A,(DE)
     oc = {0,0,0x001A};
-    i = { 7, 7, 1, INST{
+    i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
         }
     };
@@ -318,7 +318,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     i = { 20, 20, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->HL.bytes.low;
-            (*m)[nn+1] = z->getRegisters()->HL.bytes.high;            
+            (*m)[nn+1] = z->getRegisters()->HL.bytes.high;
         }
     };
     instructions[oc] = i;
@@ -362,6 +362,610 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     // DAA
     oc = {0,0,0x0027};
     i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); } };
+    instructions[oc] = i;
+
+    // JR Z,d
+    oc = {0,0,0x0028};
+    i = { 7, 12, 1, INST{
+            Z80Registers* r = z->getRegisters();
+            if (r->AF.bytes.low.ZF == true)
+            {
+                r->PC += d[0];
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD HL,HL
+    oc = {0,0,0x0029};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->HL.word = add(r->HL.word, r->HL.word, r, ADD16);
+            setUndocumentedFlags(r->HL.word, r);
+            r->AF.bytes.low.NF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD HL,(nn)
+    oc = {0,0,0x002A};
+    i = { 20, 20, 2, INST{
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            uint16_t in = CREATE_WORD((*m)[nn], (*m)[nn+1]);
+            z->getRegisters()->HL.word = in;
+        }
+    };
+    instructions[oc] = i;
+
+    // DEC HL
+    oc = {0,0,0x002B};
+    i = { 6, 6, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, DEC16);
+        }
+    };
+    instructions[oc] = i;
+
+    // INC L
+    oc = {0,0,0x002C};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.PF = (r->HL.bytes.low == 0x7F) ? true : false;
+            r->HL.bytes.low = add<uint8_t>(r->HL.bytes.low, 1, r, INC8);
+            r->AF.bytes.low.NF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // DEC L
+    oc = {0,0,0x002D};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.PF = (r->HL.bytes.low == 0x80) ? true : false;
+            r->HL.bytes.low = add<uint8_t>(r->HL.bytes.low, -1, r, DEC8);
+            r->AF.bytes.low.NF = true;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD L,n
+    oc = {0,0,0x002E};
+    i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.low = d[0]; } };
+    instructions[oc] = i;
+
+    // CPL
+    oc = {0,0,0x002F};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = ~(r->AF.bytes.high);
+            r->AF.bytes.low.HF = true;
+            r->AF.bytes.low.NF = true;
+        }
+    };
+    instructions[oc] = i;
+
+    // JR NC,d
+    oc = {0,0,0x0030};
+    i = { 7, 12, 1, INST{
+            Z80Registers* r = z->getRegisters();
+            if (r->AF.bytes.low.CF == false)
+            {
+                r->PC += d[0];
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // LD SP,nn
+    oc = {0,0,0x0031};
+    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); } };
+    instructions[oc] = i;
+
+    // LD (nn),A
+    oc = {0,0,0x0032};
+    i = { 13, 13, 2, INST{
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            (*m)[nn] = z->getRegisters()->AF.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // INC SP
+    oc = {0,0,0x0033};
+    i = { 6, 6, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP = add<uint16_t>(r->SP, 1, r, INC16);
+        }
+    };
+    instructions[oc] = i;
+
+    // INC (HL)
+    oc = {0,0,0x0034};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t byte = (*m)[r->HL.word];
+            r->AF.bytes.low.PF = (byte == 0x7F) ? true : false;
+            byte = add<uint8_t>(byte, 1, r, INC8);
+            (*m)[r->HL.word] = byte;
+            r->AF.bytes.low.NF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // DEC (HL)
+    oc = {0,0,0x0035};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t byte = (*m)[r->HL.word];
+            r->AF.bytes.low.PF = (byte == 0x80) ? true : false;
+            byte = add<uint8_t>(byte, -1, r, DEC8);
+            (*m)[r->HL.word] = byte;
+            r->AF.bytes.low.NF = true;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),n
+    oc = {0,0,0x0036};
+    i = { 10, 10, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = d[0];
+        }
+    };
+    instructions[oc] = i;
+
+    // SCF
+    oc = {0,0,0x0037};
+    i = { 4, 4, 0, INST{
+            z->getRegisters()->AF.bytes.low.CF = true;
+            z->getRegisters()->AF.bytes.low.NF = false;
+            z->getRegisters()->AF.bytes.low.HF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // JR NC,d
+    oc = {0,0,0x0038};
+    i = { 7, 12, 1, INST{
+            Z80Registers* r = z->getRegisters();
+            if (r->AF.bytes.low.CF == true)
+            {
+                r->PC += d[0];
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD HL,SP
+    oc = {0,0,0x0039};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->HL.word = add(r->HL.word, r->SP, r, ADD16);
+            setUndocumentedFlags(r->HL.word, r);
+            r->AF.bytes.low.NF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD A,(nn)
+    oc = {0,0,0x003A};
+    i = { 13, 13, 0, INST{
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            z->getRegisters()->AF.bytes.high = (*m)[nn];
+        }
+    };
+    instructions[oc] = i;
+
+    // DEC SP
+    oc = {0,0,0x003B};
+    i = { 6, 6, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
+        }
+    };
+    instructions[oc] = i;
+
+    // INC A
+    oc = {0,0,0x003C};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
+            r->AF.bytes.low.NF = false;
+        }
+    };
+    instructions[oc] = i;
+
+    // DEC A
+    oc = {0,0,0x003D};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
+            r->AF.bytes.low.NF = true;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD A,n
+    oc = {0,0,0x003E};
+    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; } };
+    instructions[oc] = i;
+
+    // CCF
+    oc = {0,0,0x003F};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            bool prevCarry = r->AF.bytes.low.CF;
+            r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = prevCarry;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD B,B
+    oc = {0,0,0x0040};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ }};
+    instructions[oc] = i;
+
+    // LD B,C
+    oc = {0,0,0x0041};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD B,D
+    oc = {0,0,0x0042};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD B,E
+    oc = {0,0,0x0043};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD B,H
+    oc = {0,0,0x0044};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD B,L
+    oc = {0,0,0x0045};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD B,(HL)
+    oc = {0,0,0x0046};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->BC.bytes.high = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD B,A
+    oc = {0,0,0x0047};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD C,B
+    oc = {0,0,0x0048};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD C,C
+    oc = {0,0,0x0049};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
+    instructions[oc] = i;
+
+    // LD C,D
+    oc = {0,0,0x004A};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD C,E
+    oc = {0,0,0x004B};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD C,H
+    oc = {0,0,0x004C};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD C,L
+    oc = {0,0,0x004D};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD C,(HL)
+    oc = {0,0,0x004E};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD C,A
+    oc = {0,0,0x004F};
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD D,B
+    oc = {0,0,0x0050};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD D,C
+    oc = {0,0,0x0051};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD D,D
+    oc = {0,0,0x0052};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
+    instructions[oc] = i;
+
+    // LD D,E
+    oc = {0,0,0x0053};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD D,H
+    oc = {0,0,0x0054};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD D,L
+    oc = {0,0,0x0055};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD D,(HL)
+    oc = {0,0,0x0056};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->DE.bytes.high = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD D,A
+    oc = {0,0,0x0057};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD E,B
+    oc = {0,0,0x0058};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD E,C
+    oc = {0,0,0x0059};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD E,D
+    oc = {0,0,0x005A};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD E,E
+    oc = {0,0,0x005B};
+    i = { 4, 4, 0, INST{; /* Practically a NOP */ } };
+    instructions[oc] = i;
+
+    // LD E,H
+    oc = {0,0,0x005C};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD E,L
+    oc = {0,0,0x005D};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD E,(HL)
+    oc = {0,0,0x005E};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->DE.bytes.low = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD E,A
+    oc = {0,0,0x005F};
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD H,B
+    oc = {0,0,0x0060};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD H,C
+    oc = {0,0,0x0061};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD H,D
+    oc = {0,0,0x0062};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD H,E
+    oc = {0,0,0x0063};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD H,H
+    oc = {0,0,0x0064};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
+    instructions[oc] = i;
+
+    // LD H,L
+    oc = {0,0,0x0065};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD H,(HL)
+    oc = {0,0,0x0066};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->HL.bytes.high = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD H,A
+    oc = {0,0,0x0067};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD L,B
+    oc = {0,0,0x0068};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD L,C
+    oc = {0,0,0x0069};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD L,D
+    oc = {0,0,0x006A};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD L,E
+    oc = {0,0,0x006B};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD L,H
+    oc = {0,0,0x006C};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD L,L
+    oc = {0,0,0x006D};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
+    instructions[oc] = i;
+
+    // LD L,(HL)
+    oc = {0,0,0x006E};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->HL.bytes.low = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD L,A
+    oc = {0,0,0x006F};
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->AF.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD (HL),B
+    oc = {0,0,0x0070};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->BC.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),C
+    oc = {0,0,0x0071};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->BC.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),D
+    oc = {0,0,0x0072};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->DE.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),E
+    oc = {0,0,0x0073};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->DE.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),H
+    oc = {0,0,0x0074};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->HL.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),L
+    oc = {0,0,0x0075};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->HL.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // HALT
+    oc = {0,0,0x0076};
+    i = { 4, 4, 0, INST{
+            z->halt();
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (HL),A
+    oc = {0,0,0x0077};
+    i = { 7, 7, 0, INST{
+            (*m)[z->getRegisters()->HL.word] = z->getRegisters()->AF.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD A,B
+    oc = {0,0,0x0078};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD A,C
+    oc = {0,0,0x0079};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD A,D
+    oc = {0,0,0x007A};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD A,E
+    oc = {0,0,0x007B};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD A,H
+    oc = {0,0,0x007C};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.high; } };
+    instructions[oc] = i;
+
+    // LD A,L
+    oc = {0,0,0x007D};
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.low; } };
+    instructions[oc] = i;
+
+    // LD A,(HL)
+    oc = {0,0,0x007E};
+    i = { 7, 7, 0, INST{
+            z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->HL.word];
+        }
+    };
+    instructions[oc] = i;
+
+    // LD A,A
+    oc = {0,0,0x007F};
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
     instructions[oc] = i;
 
     return instructions;

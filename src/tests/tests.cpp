@@ -318,5 +318,14 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 0, r->AF.bytes.low.NF );
     test(bool, 1, r->AF.bytes.low.CF );
 
+    oc = {0,0,0x002F};
+    r->AF.bytes.low.CF = 0;
+    r->AF.bytes.low.NF = 0;
+    r->AF.bytes.high = 180;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 75, r->AF.bytes.high );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 1, r->AF.bytes.low.NF );
+
     std::cout << std::endl;
 }

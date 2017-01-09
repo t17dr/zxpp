@@ -95,11 +95,13 @@ class Z80 {
         Z80();
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
+        void halt();
     private:
         Z80Registers m_registers;
         bool m_IFF1;                    // Interrupt flip-flops
         bool m_IFF2;
 
+        // TODO: execute NOPs while halted
         bool m_isHalted;
         bool m_isWaiting;               // WAIT pin active
 };
