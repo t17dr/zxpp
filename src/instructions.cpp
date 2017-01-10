@@ -968,5 +968,15 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
     instructions[oc] = i;
 
+    // ADD A,B
+    oc = {0,0,0x0080};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
     return instructions;
 }

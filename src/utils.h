@@ -71,7 +71,7 @@ constexpr bool detectOverflow(INT a, INT b)
         return false;
     }
 
-    if ( sgn<INT>(a+b) != a )
+    if ( sgn<INT>(a+b) != sgn<INT>(a) )
     {
         return true;
     }
@@ -95,6 +95,7 @@ constexpr bool detectOverflow(INT a, INT b)
 #define DEC8                (SIGN | ZERO | HALF_BORROW)
 #define DEC16               (0x00)
 #define ADD16               (CARRY | HALF_CARRY)
+#define ADD8                (SIGN | ZERO | HALF_CARRY | OVERFLOW_PARITY | CARRY)
 
 // Add two integers, generate selected flags
 template <typename INT>
@@ -140,7 +141,7 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
         r->AF.bytes.low.CF = (bool)borrowOut;
     }
 
-    if (flags & OVERFLOW)
+    if (flags & OVERFLOW_PARITY)
     {
         r->AF.bytes.low.PF = detectOverflow<INT_signed>(*reinterpret_cast<INT_signed*>(&a),
                                              *reinterpret_cast<INT_signed*>(&b));
@@ -209,6 +210,22 @@ constexpr void setUndocumentedFlags(INT result, Z80Registers* r)
     r->AF.bytes.low.YF = (bool) ( (result >> 5) & 0x01 );
 }
 
+// Returns true if x has even parity (even number of 1s in binary)
+template <typename INT>
+bool hasEvenParity(INT x)
+{
+    int count = 0;
+
+    for (int i = 0; i < (sizeof(INT)*CHAR_BIT); i++)
+    {
+        if ( x & (1 << i) ) { count++; }
+    }
+
+    if ( count % 2 ) { return false; }
+
+    return true;
+}
+
 bool daaCarry(bool C, uint8_t A);
 bool daaHalfCarry(bool N, bool H, uint8_t A);
 
@@ -241,6 +258,7 @@ inline void daa(Z80Registers* r)
     r->AF.bytes.low.SF = A >> 7;
     setUndocumentedFlags(A, r);
     r->AF.bytes.low.ZF = A == 0;
+    r->AF.bytes.low.PF = hasEvenParity(A);
 }
 
 // Carry flag after DAA operation

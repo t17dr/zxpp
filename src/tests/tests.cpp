@@ -275,7 +275,7 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 0, r->AF.bytes.low.SF );
     test(bool, 1, r->AF.bytes.low.ZF );
     test(bool, 0, r->AF.bytes.low.HF );
-    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.PF );
     test(bool, 0, r->AF.bytes.low.NF );
     test(bool, 1, r->AF.bytes.low.CF );
 
@@ -301,7 +301,7 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 0, r->AF.bytes.low.SF );
     test(bool, 0, r->AF.bytes.low.ZF );
     test(bool, 0, r->AF.bytes.low.HF );
-    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.PF );
     test(bool, 0, r->AF.bytes.low.NF );
     test(bool, 1, r->AF.bytes.low.CF );
 
@@ -314,7 +314,7 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 0, r->AF.bytes.low.SF );
     test(bool, 0, r->AF.bytes.low.ZF );
     test(bool, 0, r->AF.bytes.low.HF );
-    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.PF );
     test(bool, 0, r->AF.bytes.low.NF );
     test(bool, 1, r->AF.bytes.low.CF );
 
@@ -326,6 +326,66 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(uint8_t, 75, r->AF.bytes.high );
     test(bool, 1, r->AF.bytes.low.HF );
     test(bool, 1, r->AF.bytes.low.NF );
+
+    oc = {0,0,0x0080};
+    r->AF.bytes.high = 3;
+    r->BC.bytes.high = 2;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 5, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    oc = {0,0,0x0080};
+    r->AF.bytes.high = 1;
+    r->BC.bytes.high = 15;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 16, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    oc = {0,0,0x0080};
+    r->AF.bytes.high = 128;
+    r->BC.bytes.high = 129;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 1, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 1, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 1, r->AF.bytes.low.CF );
+
+    oc = {0,0,0x0080};
+    r->AF.bytes.high = 127;
+    r->BC.bytes.high = 5;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 132, r->AF.bytes.high );
+    test(bool, 1, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 1, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    oc = {0,0,0x0080};
+    r->AF.bytes.high = 255;
+    r->BC.bytes.high = 1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0, r->AF.bytes.high ); 
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 1, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 1, r->AF.bytes.low.CF );
 
     std::cout << std::endl;
 }
