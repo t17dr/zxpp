@@ -96,10 +96,12 @@ constexpr bool detectOverflow(INT a, INT b)
 #define DEC16               (0x00)
 #define ADD16               (CARRY | HALF_CARRY)
 #define ADD8                (SIGN | ZERO | HALF_CARRY | OVERFLOW_PARITY | CARRY)
+#define SUB8                (SIGN | ZERO | HALF_BORROW | OVERFLOW_PARITY | BORROW)
 
+// TODO: refactor
 // Add two integers, generate selected flags
 template <typename INT>
-constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn = false)
+constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn = false, bool useBorrowIn = false)
 {
     static_assert(std::numeric_limits<INT>::is_integer,
                   "Only integer types allowed in add().");
@@ -114,20 +116,19 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
     INT result;
     INT carryOut;
 
-    bool carryIn = (useCarryIn) ? (r->AF.bytes.low.CF) : false;
+    bool carryIn = (useCarryIn || useBorrowIn) ? (r->AF.bytes.low.CF) : false;
 
     if (carryIn)
     {
         carryOut = (a >= std::numeric_limits<INT>::max() - b);
-        result = a + b + 1;
+        if (!useBorrowIn) { result = a + b + 1; }
+        else { result = a + b - 1; }
     }
     else
     {
         carryOut = (a > std::numeric_limits<INT>::max() - b);
         result = a + b;
     }
-    // carryIns = result ^ a ^ b;
-    // halfCarryOut = (carryIns >> 4) & 1;
 
     if (flags & CARRY)
     {
@@ -135,9 +136,23 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
     }
     else if (flags & BORROW)
     {
-        // TODO: neodzkouseny
         INT borrowOut;
-        borrowOut = !a && b;
+
+        if (carryIn)
+        {
+            // TODO: neodzkouseny
+            INT bb = ~(b-1);       // get B before two's complement'                
+            borrowOut = ((unsigned) bb ) > ((unsigned) a );
+            INT r = a - bb;
+            borrowOut = borrowOut && (((unsigned) (carryIn & 0x1) ) > ((unsigned) r ));
+        }
+        else
+        {
+            INT bb = ~(b-1);       // get B before two's complement'
+            borrowOut = ((unsigned) bb) > ((unsigned) a );
+        }
+        
+        
         r->AF.bytes.low.CF = (bool)borrowOut;
     }
 
@@ -151,8 +166,6 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
         INT halfCarryOut;
         if ( typeSize == 8 )
         {
-            // halfCarryOut = (((a & 0xF) + (b & 0xF) + (INT)carryIn) & 0x10) >> 4;
-            // TODO: neodzkouseny
             if (carryIn)
             {
                 halfCarryOut = ((a & 0xF) >= 0xF - (b & 0xF));
@@ -181,12 +194,36 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
 
         if ( typeSize == 8 )
         {
-            halfBorrowOut = ((!(a & 0xF)) && (b & 0xF));
+            if (carryIn)
+            {
+                // TODO: neodzkouseny
+                INT bb = ~(b-1);       // get B before two's complement'                
+                halfBorrowOut = ((unsigned) (bb & 0xF)) > ((unsigned) (a & 0xF));
+                INT r = a - bb;
+                halfBorrowOut = halfBorrowOut && ( ((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xF)));
+            }
+            else
+            {
+                INT bb = ~(b-1);       // get B before two's complement'
+                halfBorrowOut = ((unsigned) (bb & 0xF)) > ((unsigned) (a & 0xF));
+            }
         }
         else
         {
             // TODO: neodzouseny
-            halfBorrowOut = ((!(a & 0xFFF)) && (b & 0xFFF));
+            // halfBorrowOut = ((!(a & 0xFFF)) && (b & 0xFFF));
+            if (carryIn)
+            {
+                INT bb = ~(b-1);       // get B before two's complement'                
+                halfBorrowOut = ((unsigned) (bb & 0xFFF)) > ((unsigned) (a & 0xFFF));
+                INT r = a - bb;
+                halfBorrowOut = halfBorrowOut && (((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xFFF)));
+            }
+            else
+            {
+                INT bb = ~(b-1);       // get B before two's complement'
+                halfBorrowOut = ((unsigned) (bb & 0xFFF)) > ((unsigned) (a & 0xFFF));
+            }
         }
         r->AF.bytes.low.HF = (bool)halfBorrowOut;
     }

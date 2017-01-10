@@ -978,5 +978,235 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     };
     instructions[oc] = i;
 
+    // ADD A,C
+    oc = {0,0,0x0081};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,D
+    oc = {0,0,0x0082};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,E
+    oc = {0,0,0x0083};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,H
+    oc = {0,0,0x0084};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.high, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,L
+    oc = {0,0,0x0085};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.low, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,(HL)
+    oc = {0,0,0x0086};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,A
+    oc = {0,0,0x0087};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,B
+    oc = {0,0,0x0088};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,C
+    oc = {0,0,0x0089};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,D
+    oc = {0,0,0x008A};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,E
+    oc = {0,0,0x008B};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,H
+    oc = {0,0,0x008C};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.high, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,L
+    oc = {0,0,0x008D};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.low, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,(HL)
+    oc = {0,0,0x008E};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,A
+    oc = {0,0,0x008F};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB B
+    oc = {0,0,0x0090};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB C
+    oc = {0,0,0x0091};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB D
+    oc = {0,0,0x0092};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB E
+    oc = {0,0,0x0093};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB H
+    oc = {0,0,0x0094};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.high), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB L
+    oc = {0,0,0x0095};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.low), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB (HL)
+    oc = {0,0,0x0096};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->HL.word]), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB A
+    oc = {0,0,0x0097};
+    i = { 4, 4, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
     return instructions;
 }
