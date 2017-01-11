@@ -23,6 +23,8 @@ int main(int argc, char* args[])
 
     // int16_t cislo = -32767;
     // proc.getRegisters()->BC.word = *reinterpret_cast<uint16_t*>(&cislo);
+
+    // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     
     runTests(proc, memory);
 

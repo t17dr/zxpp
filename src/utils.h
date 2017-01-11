@@ -144,7 +144,7 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
             INT bb = ~(b-1);       // get B before two's complement'                
             borrowOut = ((unsigned) bb ) > ((unsigned) a );
             INT r = a - bb;
-            borrowOut = borrowOut && (((unsigned) (carryIn & 0x1) ) > ((unsigned) r ));
+            borrowOut = borrowOut || (((unsigned) (carryIn & 0x1) ) > ((unsigned) r ));
         }
         else
         {
@@ -196,11 +196,10 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
         {
             if (carryIn)
             {
-                // TODO: neodzkouseny
                 INT bb = ~(b-1);       // get B before two's complement'                
                 halfBorrowOut = ((unsigned) (bb & 0xF)) > ((unsigned) (a & 0xF));
                 INT r = a - bb;
-                halfBorrowOut = halfBorrowOut && ( ((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xF)));
+                halfBorrowOut = halfBorrowOut || ( ((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xF)));
             }
             else
             {
@@ -217,7 +216,7 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
                 INT bb = ~(b-1);       // get B before two's complement'                
                 halfBorrowOut = ((unsigned) (bb & 0xFFF)) > ((unsigned) (a & 0xFFF));
                 INT r = a - bb;
-                halfBorrowOut = halfBorrowOut && (((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xFFF)));
+                halfBorrowOut = halfBorrowOut || (((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xFFF)));
             }
             else
             {
@@ -321,6 +320,45 @@ inline bool daaHalfCarry(bool N, bool H, uint8_t A)
         if ((A & 0xF) > 5 ) { return false; }
         return true;
     }
+}
+
+template <typename INT>
+INT and(INT a, INT b, Z80Registers* r)
+{
+    a = a & b;
+    r->AF.bytes.low.NF = 0;
+    r->AF.bytes.low.SF = (bool) (a >> 7);
+    r->AF.bytes.low.ZF = a == 0;
+    r->AF.bytes.low.HF = true;
+    r->AF.bytes.low.CF = false;
+    r->AF.bytes.low.PF = hasEvenParity(a);
+    return a;
+}
+
+template <typename INT>
+INT xor(INT a, INT b, Z80Registers* r)
+{
+    a = a ^ b;
+    r->AF.bytes.low.NF = 0;
+    r->AF.bytes.low.SF = (bool) (a >> 7);
+    r->AF.bytes.low.ZF = a == 0;
+    r->AF.bytes.low.HF = false;
+    r->AF.bytes.low.CF = false;
+    r->AF.bytes.low.PF = hasEvenParity(a);
+    return a;    
+}
+
+template <typename INT>
+INT or(INT a, INT b, Z80Registers* r)
+{
+    a = a | b;
+    r->AF.bytes.low.NF = 0;
+    r->AF.bytes.low.SF = (bool) (a >> 7);
+    r->AF.bytes.low.ZF = a == 0;
+    r->AF.bytes.low.HF = false;
+    r->AF.bytes.low.CF = false;
+    r->AF.bytes.low.PF = hasEvenParity(a);
+    return a;    
 }
 
 #endif

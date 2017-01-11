@@ -507,5 +507,119 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 1, r->AF.bytes.low.NF );
     test(bool, 0, r->AF.bytes.low.CF );
 
+    // SBC B
+    oc = {0,0,0x0098};
+    r->AF.bytes.low.CF = false;
+    r->AF.bytes.high = 0x29;
+    r->BC.bytes.high = 0x11;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x18, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    r->AF.bytes.low.CF = true;
+    r->AF.bytes.high = 0x29;
+    r->BC.bytes.high = 0x11;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x17, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    r->AF.bytes.low.CF = true;
+    r->AF.bytes.high = 17;
+    r->BC.bytes.high = 1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 15, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    r->AF.bytes.low.CF = false;
+    r->AF.bytes.high = 17;
+    r->BC.bytes.high = 1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 16, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    r->AF.bytes.low.CF = true;
+    r->AF.bytes.high = 0;
+    r->BC.bytes.high = 0;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, -1, r->AF.bytes.high );
+    test(bool, 1, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 1, r->AF.bytes.low.CF );
+
+    // AND B
+    oc = {0,0,0x00A0};
+    r->AF.bytes.high = 0xC3;
+    r->BC.bytes.high = 0x7B;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x43, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 1, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    // XOR B
+    oc = {0,0,0x00A8};
+    r->AF.bytes.high = 0x96;
+    r->BC.bytes.high = 0x5D;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0xCB, r->AF.bytes.high );
+    test(bool, 1, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    // OR B
+    oc = {0,0,0x00B0};
+    r->AF.bytes.high = 0x12;
+    r->BC.bytes.high = 0x48;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x5A, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 1, r->AF.bytes.low.PF );
+    test(bool, 0, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
+    // CP B
+    oc = {0,0,0x00B8};
+    r->AF.bytes.high = 0x63;
+    r->BC.bytes.high = 0x60;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x63, r->AF.bytes.high );
+    test(bool, 0, r->AF.bytes.low.SF );
+    test(bool, 0, r->AF.bytes.low.ZF );
+    test(bool, 0, r->AF.bytes.low.HF );
+    test(bool, 0, r->AF.bytes.low.PF );
+    test(bool, 1, r->AF.bytes.low.NF );
+    test(bool, 0, r->AF.bytes.low.CF );
+
     std::cout << std::endl;
 }
