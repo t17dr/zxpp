@@ -29,6 +29,11 @@ Z80Registers* Z80::getRegisters()
     return &m_registers;
 }
 
+Z80IOPorts* Z80::getIoPorts()
+{
+    return &m_ioPorts;
+}
+
 void Z80::halt()
 {
     m_isHalted = true;

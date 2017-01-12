@@ -90,14 +90,38 @@ struct Z80Registers {
     } HLx;
 };
 
+struct Z80IOPorts {
+    uint8_t ports[0xFF+1];
+
+    inline uint8_t& operator[](uint16_t i)
+    {
+        return ports[i];
+    }
+
+    inline const uint8_t& operator[](uint16_t i) const
+    {
+        return ports[i];
+    }
+
+    uint8_t* begin() { return ports; }
+    uint8_t* end()   { return ports + 0xff; }
+
+    uint8_t const* cbegin() const { return ports; }
+    uint8_t const* cend()   const { return ports + 0xff; }
+    uint8_t const* begin()  const { return cbegin(); }
+    uint8_t const* end()    const { return cend(); }
+};
+
 class Z80 {
     public:
         Z80();
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
+        Z80IOPorts* getIoPorts();
         void halt();
     private:
         Z80Registers m_registers;
+        Z80IOPorts m_ioPorts;
         bool m_IFF1;                    // Interrupt flip-flops
         bool m_IFF2;
 
