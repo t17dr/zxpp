@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 struct Spectrum48KMemory {
-    uint8_t memory[0xFFFF];
+    uint8_t memory[0xFFFF+1];
 
     uint8_t* ROM = &memory[0x0000];
     uint8_t* screenMemory = &memory[0x4000];
