@@ -25,6 +25,8 @@ int main(int argc, char* args[])
     // proc.getRegisters()->BC.word = *reinterpret_cast<uint16_t*>(&cislo);
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
+    // TODO: podminene jump instrukce musi vracet zda provedly skok kvuli casovani
+    // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
     
     runTests(proc, memory);
 

@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include "defines.h"
+#include "z80.h"
 
 #include <type_traits>
 #include <limits>
@@ -359,6 +360,62 @@ INT or(INT a, INT b, Z80Registers* r)
     r->AF.bytes.low.CF = false;
     r->AF.bytes.low.PF = hasEvenParity(a);
     return a;    
+}
+
+enum class RetCondition { NZ = 0, Z, NC, C, PO, PE, P, M };
+
+// RET cc instructions
+inline void retc(Z80Registers* r, Spectrum48KMemory* m,  RetCondition c )
+{
+    bool condition = false;
+    switch (c)
+    {
+        case RetCondition::NZ:  condition = !(r->AF.bytes.low.ZF);  break;
+        case RetCondition::Z:   condition = r->AF.bytes.low.ZF;     break;
+        case RetCondition::NC:  condition = !(r->AF.bytes.low.CF);  break;
+        case RetCondition::C:   condition = r->AF.bytes.low.CF;     break;
+        case RetCondition::PO:  condition = !(r->AF.bytes.low.PF);  break;
+        case RetCondition::PE:  condition = r->AF.bytes.low.PF;     break;
+        case RetCondition::P:   condition = !(r->AF.bytes.low.SF);  break;
+        case RetCondition::M:   condition = r->AF.bytes.low.SF;     break;
+        default:                assert(false);                      break;
+    }
+
+    if (condition)
+    {
+        r->PC = 0;
+        r->PC |= (*m)[r->SP];
+        r->SP++;
+        r->PC |= (*m)[r->SP] << 8;
+        r->SP++;
+    }
+}
+
+// CALL cc,nn instructinos
+inline void callc(Z80Registers* r, Spectrum48KMemory* m, RetCondition c, uint16_t nn)
+{
+    bool condition = false;
+    switch (c)
+    {
+        case RetCondition::NZ:  condition = !(r->AF.bytes.low.ZF);  break;
+        case RetCondition::Z:   condition = r->AF.bytes.low.ZF;     break;
+        case RetCondition::NC:  condition = !(r->AF.bytes.low.CF);  break;
+        case RetCondition::C:   condition = r->AF.bytes.low.CF;     break;
+        case RetCondition::PO:  condition = !(r->AF.bytes.low.PF);  break;
+        case RetCondition::PE:  condition = r->AF.bytes.low.PF;     break;
+        case RetCondition::P:   condition = !(r->AF.bytes.low.SF);  break;
+        case RetCondition::M:   condition = r->AF.bytes.low.SF;     break;
+        default:                assert(false);                      break;
+    }
+
+    if (condition)
+    {
+        r->SP--;
+        (*m)[r->SP] = (r->PC) >> 8;
+        r->SP--;
+        (*m)[r->SP] = (r->PC) & 0xFF;
+        r->PC = nn;
+    }
 }
 
 #endif

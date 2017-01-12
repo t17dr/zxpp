@@ -1584,5 +1584,261 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     };
     instructions[oc] = i;
 
+    // RET NZ
+    oc = {0,0,0x00C0};
+    i = { 5, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            retc(r, m, RetCondition::NZ);
+        }
+    };
+    instructions[oc] = i;
+
+    // POP BC
+    oc = {0,0,0x00C1};
+    i = { 10, 10, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
+            r->SP++;
+        }
+    };
+    instructions[oc] = i;
+
+    // JP NZ,nn
+    oc = {0,0,0x00C2};
+    i = { 10, 10, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            if (!(r->AF.bytes.low.ZF))
+            {
+                r->PC = nn;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // JP nn
+    oc = {0,0,0x00C3};
+    i = { 10, 10, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            r->PC = nn;
+        }
+    };
+    instructions[oc] = i;
+
+    // CALL NZ,nn
+    oc = {0,0,0x00C4};
+    i = { 10, 17, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            callc(r, m, RetCondition::NZ, nn);
+        }
+    };
+    instructions[oc] = i;
+
+    // PUSH BC
+    oc = {0,0,0x00C5};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP--;
+            (*m)[r->SP] = r->BC.bytes.high;
+            r->SP--;
+            (*m)[r->SP] = r->BC.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADD A,n
+    oc = {0,0,0x00C6};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // RST 00
+    oc = {0,0,0x00C7};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP--;
+            (*m)[r->SP] = r->PC >> 8;
+            r->SP--;
+            (*m)[r->SP] = r->PC & 0xFF;
+            r->PC = 0 | 0x00;
+        }
+    };
+    instructions[oc] = i;
+
+    // RET Z
+    oc = {0,0,0x00C8};
+    i = { 5, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            retc(r, m, RetCondition::Z);
+        }
+    };
+    instructions[oc] = i;
+
+    // RET
+    oc = {0,0,0x00C9};
+    i = { 10, 10, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->PC = 0 | (*m)[r->SP];
+            r->SP++;
+            r->PC |= ((*m)[r->SP]) << 8;
+            r->SP++;
+        }
+    };
+    instructions[oc] = i;
+
+    // JP Z,nn
+    oc = {0,0,0x00CA};
+    i = { 10, 10, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            if (r->AF.bytes.low.ZF)
+            {
+                r->PC = nn;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // 0x00CB is prefix
+
+    // CALL Z,nn
+    oc = {0,0,0x00CC};
+    i = { 10, 17, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            callc(r, m, RetCondition::Z, nn);
+        }
+    };
+    instructions[oc] = i;
+
+    // CALL nn
+    oc = {0,0,0x00CD};
+    i = { 17, 17, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            r->SP--;
+            (*m)[r->SP] = (r->PC) >> 8;
+            r->SP--;
+            (*m)[r->SP] = (r->PC) & 0xFF;
+            r->PC = nn;
+        }
+    };
+    instructions[oc] = i;
+
+    // ADC A,n
+    oc = {0,0,0x00CE};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // RST 08
+    oc = {0,0,0x00CF};  
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP--;
+            (*m)[r->SP] = r->PC >> 8;
+            r->SP--;
+            (*m)[r->SP] = r->PC & 0xFF;
+            r->PC = 0 | 0x08;
+        }
+    };
+    instructions[oc] = i;
+
+    // RET NC
+    oc = {0,0,0x00D0};
+    i = { 5, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            retc(r, m, RetCondition::NC);
+        }
+    };
+    instructions[oc] = i;
+
+    // POP DE
+    oc = {0,0,0x00D1};
+    i = { 10, 10, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
+            r->SP++;
+        }
+    };
+    instructions[oc] = i;
+
+    // JP NC,nn
+    oc = {0,0,0x00D2};
+    i = { 10, 10, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            if (!(r->AF.bytes.low.CF))
+            {
+                r->PC = nn;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // OUT (n),A
+    oc = {0,0,0x00D3};
+    i = { 11, 11, 1, INST{
+            Z80Registers* r = z->getRegisters();
+            (*(z->getIoPorts()))[d[0]] = r->AF.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // CALL NC,nn
+    oc = {0,0,0x00D4};
+    i = { 10, 17, 2, INST{
+            Z80Registers* r = z->getRegisters();
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            callc(r, m, RetCondition::NC, nn);
+        }
+    };
+    instructions[oc] = i;
+
+    // PUSH DE
+    oc = {0,0,0x00D5};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP--;
+            (*m)[r->SP] = r->DE.bytes.high;
+            r->SP--;
+            (*m)[r->SP] = r->DE.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // SUB n
+    oc = {0,0,0x00D6};
+    i = { 7, 7, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // RST 10
+    oc = {0,0,0x00D7};
+    i = { 11, 11, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->SP--;
+            (*m)[r->SP] = r->PC >> 8;
+            r->SP--;
+            (*m)[r->SP] = r->PC & 0xFF;
+            r->PC = 0 | 0x10;
+        }
+    };
+    instructions[oc] = i;
+
     return instructions;
 }

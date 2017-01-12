@@ -621,5 +621,75 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, 1, r->AF.bytes.low.NF );
     test(bool, 0, r->AF.bytes.low.CF );
 
+    // RET NZ
+    oc = {0,0,0x00C0};
+    r->AF.bytes.low.ZF = false;
+    r->SP = 0x2000;
+    memory[0x2000] = 0xB5;
+    memory[0x2001] = 0x18;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x2002, r->SP );
+    test(uint16_t, 0x18B5, r->PC );
+
+    // POP BC
+    oc = {0,0,0x00C1};
+    r->SP = 0x1000;
+    memory[0x1000] = 0x55;
+    memory[0x1001] = 0x33;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x3355, r->BC.word );
+    test(uint16_t, 0x1002, r->SP );
+
+    // CALL NZ,nn
+    oc = {0,0,0x00C4};
+    r->PC = 0x1A47;
+    r->SP = 0x3002;
+    memory[0x1A47] = 0xD4;
+    memory[0x1448] = 0x35;
+    memory[0x1A49] = 0x21;
+    data.clear();
+    data = { 0x35, 0x21 };
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x1A, memory[0x3001] );
+    test(uint16_t, 0x47, memory[0x3000] );
+    test(uint16_t, 0x3000, r->SP );
+    test(uint16_t, 0x2135, r->PC );
+
+    // PUSH BC
+    oc = {0,0,0x00C5};
+    r->BC.word = 0x2233;
+    r->SP = 0x1007;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x22, memory[0x1006] );
+    test(uint16_t, 0x33, memory[0x1005] );
+    test(uint16_t, 0x1005, r->SP );
+
+    // RST 00
+    oc = {0,0,0x00C7};
+    r->PC = 0x15B3;
+    r->SP = 0x1007;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x15, memory[0x1006] );
+    test(uint16_t, 0xB3, memory[0x1005] );
+    test(uint16_t, 0x1005, r->SP );
+    test(uint16_t, 0x0000, r->PC );
+
+    // RET
+    oc = {0,0,0x00C9};
+    r->PC = 0x3535;
+    r->SP = 0x2000;
+    memory[0x2000] = 0xB5;
+    memory[0x2001] = 0x18;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x2002, r->SP );
+    test(uint16_t, 0x18B5, r->PC );
+
+    // OUT (n),A
+    oc = {0,0,0x00D3};
+    r->AF.bytes.high = 0x23;
+    data = { 0x01 };
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x23, (*(proc.getIoPorts()))[0x01] );
+
     std::cout << std::endl;
 }
