@@ -719,5 +719,13 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(uint8_t, 0x70, memory[0x8857] );
     test(uint16_t, 0x8856, r->SP );
 
+    // INC (IX+d)
+    oc = {0,0xDD,0x0034};
+    r->IX.word = 0x1245;
+    data = { 0x71 };
+    memory[0x12B6] = 0xF8;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0xF9, memory[0x12B6] );
+
     std::cout << std::endl;
 }
