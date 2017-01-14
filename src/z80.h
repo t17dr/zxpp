@@ -118,6 +118,8 @@ class Z80 {
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
         Z80IOPorts* getIoPorts();
+        void setIFF1(bool b);
+        void setIFF2(bool b);
         void halt();
     private:
         Z80Registers m_registers;

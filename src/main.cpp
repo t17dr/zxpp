@@ -27,6 +27,7 @@ int main(int argc, char* args[])
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: podminene jump instrukce musi vracet zda provedly skok kvuli casovani
     // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
+    // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
     
     runTests(proc, memory);
 

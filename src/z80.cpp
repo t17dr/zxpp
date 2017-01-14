@@ -34,6 +34,16 @@ Z80IOPorts* Z80::getIoPorts()
     return &m_ioPorts;
 }
 
+void Z80::setIFF1(bool b)
+{
+    m_IFF1 = b;
+}
+
+void Z80::setIFF2(bool b)
+{
+    m_IFF2 = b;
+}
+
 void Z80::halt()
 {
     m_isHalted = true;

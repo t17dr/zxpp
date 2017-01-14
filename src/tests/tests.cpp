@@ -691,5 +691,33 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     instructions[oc].execute(&proc, &memory, data);
     test(uint8_t, 0x23, (*(proc.getIoPorts()))[0x01] );
 
+    // EXX
+    oc = {0,0,0x00D9};
+    r->BC.word = 0x2374;
+    r->BCx.word = 0x5431;
+    r->DE.word = 0x8FC4;
+    r->DEx.word = 0xFFCE;
+    r->HL.word = 0x1234;
+    r->HLx.word = 0x0042;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x2374, r->BCx.word );
+    test(uint16_t, 0x5431, r->BC.word );
+    test(uint16_t, 0x8FC4, r->DEx.word );
+    test(uint16_t, 0xFFCE, r->DE.word );
+    test(uint16_t, 0x1234, r->HLx.word );
+    test(uint16_t, 0x0042, r->HL.word );
+
+    // EX (SP),HL
+    oc = {0,0,0x00E3};
+    r->HL.word = 0x7012;
+    r->SP = 0x8856;
+    memory[0x8856] = 0x11;
+    memory[0x8857] = 0x22;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint16_t, 0x2211, r->HL.word );
+    test(uint8_t, 0x12, memory[0x8856] );
+    test(uint8_t, 0x70, memory[0x8857] );
+    test(uint16_t, 0x8856, r->SP );
+
     std::cout << std::endl;
 }
