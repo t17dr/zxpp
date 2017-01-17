@@ -44,7 +44,23 @@ void Z80::setIFF2(bool b)
     m_IFF2 = b;
 }
 
+bool Z80::getIFF2()
+{
+    return m_IFF2;
+}
+
 void Z80::halt()
 {
     m_isHalted = true;
 }
+
+bool Z80::getInterruptMode()
+{
+    return m_interruptMode;
+}
+
+void Z80::setInterruptMode(bool m)
+{
+    m_interruptMode = m;
+}
+

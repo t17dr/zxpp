@@ -120,7 +120,10 @@ class Z80 {
         Z80IOPorts* getIoPorts();
         void setIFF1(bool b);
         void setIFF2(bool b);
+        bool getIFF2();
         void halt();
+        bool getInterruptMode();
+        void setInterruptMode(bool m);
     private:
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;
@@ -130,6 +133,7 @@ class Z80 {
         // TODO: execute NOPs while halted
         bool m_isHalted;
         bool m_isWaiting;               // WAIT pin active
+        int m_interruptMode;
 };
 
 #endif

@@ -98,6 +98,8 @@ constexpr bool detectOverflow(INT a, INT b)
 #define ADD16               (CARRY | HALF_CARRY)
 #define ADD8                (SIGN | ZERO | HALF_CARRY | OVERFLOW_PARITY | CARRY)
 #define SUB8                (SIGN | ZERO | HALF_BORROW | OVERFLOW_PARITY | BORROW)
+#define SUB16               (SIGN | ZERO | HALF_BORROW | OVERFLOW_PARITY | BORROW)
+#define NEG8                (SIGN | ZERO | HALF_BORROW)
 
 // TODO: refactor
 // Add two integers, generate selected flags
@@ -141,7 +143,6 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
 
         if (carryIn)
         {
-            // TODO: neodzkouseny
             INT bb = ~(b-1);       // get B before two's complement'                
             borrowOut = ((unsigned) bb ) > ((unsigned) a );
             INT r = a - bb;
@@ -210,8 +211,6 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
         }
         else
         {
-            // TODO: neodzouseny
-            // halfBorrowOut = ((!(a & 0xFFF)) && (b & 0xFFF));
             if (carryIn)
             {
                 INT bb = ~(b-1);       // get B before two's complement'                

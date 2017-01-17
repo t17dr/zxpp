@@ -6745,5 +6745,174 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     };
     instructions[oc] = i;
 
+    /* 0xED00 - 0xED3F are NOPs */
+
+    // IN B,(C)
+    oc = {0,0xED,0x0040};
+    i = { 12, 12, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->BC.bytes.high = (*(z->getIoPorts()))[r->BC.bytes.low];
+        }
+    };
+    instructions[oc] = i;
+
+    // OUT (C),B
+    oc = {0,0xED,0x0041};
+    i = { 12, 12, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            (*(z->getIoPorts()))[r->BC.bytes.low] = r->BC.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // SBC HL,BC
+    oc = {0,0xED,0x0042};
+    i = { 15, 15, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->HL.word = add<uint16_t>(r->HL.word, -(r->BC.word), r, SUB16, false, true);
+            r->AF.bytes.low.NF = 1;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD (nn),BC
+    oc = {0,0xED,0x0043};
+    i = { 20, 20, 2, INST{
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            (*m)[nn] = z->getRegisters()->BC.bytes.low;
+            (*m)[nn+1] = z->getRegisters()->BC.bytes.high;
+        }
+    };
+    instructions[oc] = i;
+
+    // NEG
+    oc = {0,0xED,0x0044};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            if ( r->AF.bytes.high == 0x80 ) { r->AF.bytes.low.PF = true; }
+            else { r->AF.bytes.low.PF = false; }
+            r->AF.bytes.low.CF = r->AF.bytes.high != 0x00;
+            r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
+            r->AF.bytes.low.NF = true;
+
+        }
+    };
+    instructions[oc] = i;
+
+    // RETN
+    oc = {0,0xED,0x0045};
+    i = { 14, 14, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->PC = 0;
+            r->PC |= (*m)[r->SP];
+            r->SP++;
+            r->PC |= (*m)[r->SP] << 8;
+            r->SP++;
+            z->setIFF1(z->getIFF2());
+        }
+    };
+    instructions[oc] = i;
+
+    // IM 0
+    oc = {0,0xED,0x0046};
+    i = { 8, 8, 0, INST{
+            z->setInterruptMode(0);
+        }
+    };
+    instructions[oc] = i;
+
+    // LD I,A
+    oc = {0,0xED,0x0047};
+    i = { 9, 9, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->IR.bytes.high = r->AF.bytes.high;            
+        }
+    };
+    instructions[oc] = i;
+
+    // IN C,(C)
+    oc = {0,0xED,0x0048};
+    i = { 12, 12, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->BC.bytes.low = (*(z->getIoPorts()))[r->BC.bytes.low];
+        }
+    };
+    instructions[oc] = i;
+
+    // OUT (C),C
+    oc = {0,0xED,0x0049};
+    i = { 12, 12, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            (*(z->getIoPorts()))[r->BC.bytes.low] = r->BC.bytes.low;
+        }
+    };
+    instructions[oc] = i;
+
+    // ABC HL,BC
+    oc = {0,0xED,0x004A};
+    i = { 15, 15, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->HL.word = add<uint16_t>(r->HL.word, r->BC.word, r, ADD16, false, true);
+            r->AF.bytes.low.NF = 0;
+        }
+    };
+    instructions[oc] = i;
+
+    // LD BC,(nn)
+    oc = {0,0xED,0x004B};
+    i = { 20, 20, 2, INST{
+            uint16_t nn = CREATE_WORD(d[0], d[1]);
+            z->getRegisters()->BC.bytes.low = (*m)[nn];
+            z->getRegisters()->BC.bytes.high = (*m)[nn+1];
+        }
+    };
+    instructions[oc] = i;
+
+    // NEG
+    oc = {0,0xED,0x004C};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            if ( r->AF.bytes.high == 0x80 ) { r->AF.bytes.low.PF = true; }
+            else { r->AF.bytes.low.PF = false; }
+            r->AF.bytes.low.CF = r->AF.bytes.high != 0x00;
+            r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
+            r->AF.bytes.low.NF = true;
+
+        }
+    };
+    instructions[oc] = i;
+
+    // RETI
+    oc = {0,0xED,0x004D};
+    i = { 14, 14, 0, INST{
+            // Only differs from RETN in opcode
+            Z80Registers* r = z->getRegisters();
+            r->PC = 0;
+            r->PC |= (*m)[r->SP];
+            r->SP++;
+            r->PC |= (*m)[r->SP] << 8;
+            r->SP++;
+            z->setIFF1(z->getIFF2());
+        }
+    };
+    instructions[oc] = i;
+
+    // IM 0
+    oc = {0,0xED,0x004E};
+    i = { 8, 8, 0, INST{
+            z->setInterruptMode(0);
+        }
+    };
+    instructions[oc] = i;
+
+    // LD R,A
+    oc = {0,0xED,0x004F};
+    i = { 9, 9, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->IR.bytes.low = r->AF.bytes.high;            
+        }
+    };
+    instructions[oc] = i;
+
     return instructions;
 }

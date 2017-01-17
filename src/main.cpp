@@ -21,13 +21,12 @@ int main(int argc, char* args[])
     Z80 proc;
     Spectrum48KMemory memory;
 
-    // int16_t cislo = -32767;
-    // proc.getRegisters()->BC.word = *reinterpret_cast<uint16_t*>(&cislo);
-
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: podminene jump instrukce musi vracet zda provedly skok kvuli casovani
     // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
+    // TODO: nenalezeny instrukce = NOP
+    // TODO: ignorovat DD,FD pred ED
     
     runTests(proc, memory);
 
