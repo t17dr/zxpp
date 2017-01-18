@@ -777,5 +777,55 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     test(bool, true, r->AF.bytes.low.HF );
     test(bool, false, r->AF.bytes.low.PF );
 
+    // RRD
+    oc = {0,0xED,0x0067};
+    r->AF.bytes.high = 0x84;
+    r->HL.word = 0x5000;
+    memory[0x5000] = 0x20;
+    r->AF.bytes.low.CF = false;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x80, r->AF.bytes.high );
+    test(uint8_t, 0x42, memory[0x5000] );
+    test(bool, true, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.CF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.PF );
+
+    // RLD
+    oc = {0,0xED,0x006F};
+    r->AF.bytes.high = 0x7A;
+    r->HL.word = 0x5000;
+    memory[0x5000] = 0x31;
+    r->AF.bytes.low.CF = false;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x73, r->AF.bytes.high );
+    test(uint8_t, 0x1A, memory[0x5000] );
+    test(bool, false, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.CF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.PF );
+
+    // LDI
+    oc = {0,0xED,0x00A0};
+    r->BC.word = 0x7;
+    r->HL.word = 0x1111;
+    r->DE.word = 0x2222;
+    memory[0x1111] = 0x88;
+    memory[0x2222] = 0x66;
+    r->AF.bytes.low.CF = false;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x1112, r->HL.word );
+    test(uint8_t, 0x2223, r->DE.word );
+    test(uint8_t, 0x6, r->BC.word );
+    test(uint8_t, 0x88, memory[0x1111] );
+    test(uint8_t, 0x88, memory[0x2222] );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, true, r->AF.bytes.low.PF );
+
     std::cout << std::endl;
 }
