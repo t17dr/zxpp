@@ -122,8 +122,8 @@ class Z80 {
         void setIFF2(bool b);
         bool getIFF2();
         void halt();
-        bool getInterruptMode();
-        void setInterruptMode(bool m);
+        int getInterruptMode();
+        void setInterruptMode(int m);
     private:
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;

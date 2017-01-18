@@ -54,12 +54,12 @@ void Z80::halt()
     m_isHalted = true;
 }
 
-bool Z80::getInterruptMode()
+int Z80::getInterruptMode()
 {
     return m_interruptMode;
 }
 
-void Z80::setInterruptMode(bool m)
+void Z80::setInterruptMode(int m)
 {
     m_interruptMode = m;
 }
