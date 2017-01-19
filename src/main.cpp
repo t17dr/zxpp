@@ -23,6 +23,7 @@ int main(int argc, char* args[])
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: podminene jump instrukce musi vracet zda provedly skok kvuli casovani
+    //                  -- !!update: nemusí, staci kontrolovat zda meni PC, tak se vyresi i LDIR
     // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
     // TODO: nenalezeny instrukce = NOP
