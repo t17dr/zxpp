@@ -7821,7 +7821,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // RLC (HL)
     oc = {0,0xCB,0x0006};
-    i = { 8, 8, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t hlMem = (*m)[r->HL.word];
             r->AF.bytes.low.CF = (bool)((hlMem >> 7) & 0x01);
@@ -7943,7 +7943,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // RRC (HL)
     oc = {0,0xCB,0x000E};
-    i = { 8, 8, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t hlMem = (*m)[r->HL.word];
             r->AF.bytes.low.CF = (bool)((hlMem) & 0x01);
@@ -8059,7 +8059,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // RL (HL)
     oc = {0,0xCB,0x0016};
-    i = { 8, 8, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t hlMem = (*m)[r->HL.word];
             r->AF.bytes.low.CF = rolc<uint8_t>(hlMem, r->AF.bytes.low.CF);
@@ -8173,7 +8173,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // RR (HL)
     oc = {0,0xCB,0x001E};
-    i = { 8, 8, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t hlMem = (*m)[r->HL.word];
             r->AF.bytes.low.CF = rorc<uint8_t>(hlMem, r->AF.bytes.low.CF);
