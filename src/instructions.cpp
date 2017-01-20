@@ -7657,5 +7657,77 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     /* 0xEDB4 - 0xEDB7 are NOPs */
 
+    // LDDR
+    oc = {0,0xED,0x00B8};
+    i = { 16, 21, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            (*m)[r->DE.word] = (*m)[r->HL.word];
+            r->DE.word = add<uint16_t>(r->DE.word, -1, r, 0);
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
+            r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = false;
+            r->AF.bytes.low.NF = false;
+            if (r->BC.word != 0)
+            {
+                r->PC -= 2;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // CPDR
+    oc = {0,0xED,0x00B9};
+    i = { 16, 21, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8);
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
+            r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
+            r->AF.bytes.low.PF = r->BC.word != 0;
+            r->AF.bytes.low.NF = true;
+            if (r->BC.word != 0 && r->AF.bytes.high != (*m)[r->HL.word])
+            {
+                r->PC -= 2;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // INDR
+    oc = {0,0xED,0x00BA};
+    i = { 16, 21, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
+            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
+            r->AF.bytes.low.ZF = true;
+            r->AF.bytes.low.NF = true;
+            if (r->BC.bytes.high != 0)
+            {
+                r->PC -= 2;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    // OTDR
+    oc = {0,0xED,0x00BB};
+    i = { 16, 21, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
+            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
+            r->AF.bytes.low.ZF = true;
+            r->AF.bytes.low.NF = true;
+            if (r->BC.bytes.high != 0)
+            {
+                r->PC -= 2;
+            }
+        }
+    };
+    instructions[oc] = i;
+
+    /* 0xEDBC - 0xEDFF are NOPs */
+
     return instructions;
 }
