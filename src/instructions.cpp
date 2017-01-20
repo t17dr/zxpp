@@ -7729,5 +7729,477 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     /* 0xEDBC - 0xEDFF are NOPs */
 
+    // RLC B
+    oc = {0,0xCB,0x0000};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->BC.bytes.high >> 7) & 0x01);
+            r->BC.bytes.high = rol<uint8_t>(r->BC.bytes.high);
+            r->AF.bytes.low.SF = r->BC.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC C
+    oc = {0,0xCB,0x0001};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->BC.bytes.low >> 7) & 0x01);
+            r->BC.bytes.low = rol<uint8_t>(r->BC.bytes.low);
+            r->AF.bytes.low.SF = r->BC.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC D
+    oc = {0,0xCB,0x0002};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->DE.bytes.high >> 7) & 0x01);
+            r->DE.bytes.high = rol<uint8_t>(r->DE.bytes.high);
+            r->AF.bytes.low.SF = r->DE.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC E
+    oc = {0,0xCB,0x0003};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->DE.bytes.low >> 7) & 0x01);
+            r->DE.bytes.low = rol<uint8_t>(r->DE.bytes.low);
+            r->AF.bytes.low.SF = r->DE.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC H
+    oc = {0,0xCB,0x0004};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->HL.bytes.high >> 7) & 0x01);
+            r->HL.bytes.high = rol<uint8_t>(r->HL.bytes.high);
+            r->AF.bytes.low.SF = r->HL.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC L
+    oc = {0,0xCB,0x0005};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->HL.bytes.low >> 7) & 0x01);
+            r->HL.bytes.low = rol<uint8_t>(r->HL.bytes.low);
+            r->AF.bytes.low.SF = r->HL.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC (HL)
+    oc = {0,0xCB,0x0006};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t hlMem = (*m)[r->HL.word];
+            r->AF.bytes.low.CF = (bool)((hlMem >> 7) & 0x01);
+            hlMem = rol<uint8_t>(hlMem);
+            r->AF.bytes.low.SF = hlMem >> 7;
+            r->AF.bytes.low.ZF = hlMem == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(hlMem);
+            (*m)[r->HL.word] = hlMem;
+        }
+    };
+    instructions[oc] = i;
+
+    // RLC A
+    oc = {0,0xCB,0x0007};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->AF.bytes.high >> 7) & 0x01);
+            r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
+            r->AF.bytes.low.SF = r->AF.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->AF.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC B
+    oc = {0,0xCB,0x0008};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->BC.bytes.high) & 0x01);
+            r->BC.bytes.high = ror<uint8_t>(r->BC.bytes.high);
+            r->AF.bytes.low.SF = r->BC.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC C
+    oc = {0,0xCB,0x0009};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->BC.bytes.low) & 0x01);
+            r->BC.bytes.low = ror<uint8_t>(r->BC.bytes.low);
+            r->AF.bytes.low.SF = r->BC.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC D
+    oc = {0,0xCB,0x000A};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->DE.bytes.high) & 0x01);
+            r->DE.bytes.high = ror<uint8_t>(r->DE.bytes.high);
+            r->AF.bytes.low.SF = r->DE.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC E
+    oc = {0,0xCB,0x000B};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->DE.bytes.low) & 0x01);
+            r->DE.bytes.low = ror<uint8_t>(r->DE.bytes.low);
+            r->AF.bytes.low.SF = r->DE.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC H
+    oc = {0,0xCB,0x000C};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->HL.bytes.high) & 0x01);
+            r->HL.bytes.high = ror<uint8_t>(r->HL.bytes.high);
+            r->AF.bytes.low.SF = r->HL.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC L
+    oc = {0,0xCB,0x000D};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->HL.bytes.low) & 0x01);
+            r->HL.bytes.low = ror<uint8_t>(r->HL.bytes.low);
+            r->AF.bytes.low.SF = r->HL.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC (HL)
+    oc = {0,0xCB,0x000E};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t hlMem = (*m)[r->HL.word];
+            r->AF.bytes.low.CF = (bool)((hlMem) & 0x01);
+            hlMem = ror<uint8_t>(hlMem);
+            r->AF.bytes.low.SF = hlMem >> 7;
+            r->AF.bytes.low.ZF = hlMem == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(hlMem);
+            (*m)[r->HL.word] = hlMem;
+        }
+    };
+    instructions[oc] = i;
+
+    // RRC A
+    oc = {0,0xCB,0x000F};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = (bool)((r->AF.bytes.high) & 0x01);
+            r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
+            r->AF.bytes.low.SF = r->AF.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->AF.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL B
+    oc = {0,0xCB,0x0010};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->BC.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->BC.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL C
+    oc = {0,0xCB,0x0011};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->BC.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->BC.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL D
+    oc = {0,0xCB,0x0012};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->DE.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->DE.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL E
+    oc = {0,0xCB,0x0013};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->DE.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->DE.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL H
+    oc = {0,0xCB,0x0014};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->HL.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->HL.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL L
+    oc = {0,0xCB,0x0015};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->HL.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->HL.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RL (HL)
+    oc = {0,0xCB,0x0016};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t hlMem = (*m)[r->HL.word];
+            r->AF.bytes.low.CF = rolc<uint8_t>(hlMem, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = hlMem >> 7;
+            r->AF.bytes.low.ZF = hlMem == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(hlMem);
+            (*m)[r->HL.word] = hlMem;
+        }
+    };
+    instructions[oc] = i;
+
+    // RL A
+    oc = {0,0xCB,0x0017};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rolc<uint8_t>(r->AF.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->AF.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->AF.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR B
+    oc = {0,0xCB,0x0018};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->BC.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->BC.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR C
+    oc = {0,0xCB,0x0019};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->BC.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->BC.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR D
+    oc = {0,0xCB,0x001A};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->DE.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->DE.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR E
+    oc = {0,0xCB,0x001B};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->DE.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->DE.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR H
+    oc = {0,0xCB,0x001C};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->HL.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->HL.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR L
+    oc = {0,0xCB,0x001D};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->HL.bytes.low, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->HL.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.low == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
+        }
+    };
+    instructions[oc] = i;
+
+    // RR (HL)
+    oc = {0,0xCB,0x001E};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            uint8_t hlMem = (*m)[r->HL.word];
+            r->AF.bytes.low.CF = rorc<uint8_t>(hlMem, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = hlMem >> 7;
+            r->AF.bytes.low.ZF = hlMem == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(hlMem);
+            (*m)[r->HL.word] = hlMem;
+        }
+    };
+    instructions[oc] = i;
+
+    // RR A
+    oc = {0,0xCB,0x001F};
+    i = { 8, 8, 0, INST{
+            Z80Registers* r = z->getRegisters();
+            r->AF.bytes.low.CF = rorc<uint8_t>(r->AF.bytes.high, r->AF.bytes.low.CF);
+            r->AF.bytes.low.SF = r->AF.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->AF.bytes.high == 0;
+            r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.HF = false;
+            r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
+        }
+    };
+    instructions[oc] = i;
+
     return instructions;
 }
