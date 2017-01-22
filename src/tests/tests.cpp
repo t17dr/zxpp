@@ -818,14 +818,143 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     memory[0x2222] = 0x66;
     r->AF.bytes.low.CF = false;
     instructions[oc].execute(&proc, &memory, data);
-    test(uint8_t, 0x1112, r->HL.word );
-    test(uint8_t, 0x2223, r->DE.word );
-    test(uint8_t, 0x6, r->BC.word );
+    test(uint16_t, 0x1112, r->HL.word );
+    test(uint16_t, 0x2223, r->DE.word );
+    test(uint16_t, 0x6, r->BC.word );
     test(uint8_t, 0x88, memory[0x1111] );
     test(uint8_t, 0x88, memory[0x2222] );
     test(bool, false, r->AF.bytes.low.NF );
     test(bool, false, r->AF.bytes.low.HF );
     test(bool, true, r->AF.bytes.low.PF );
+
+    // SLA B
+    oc = {0,0xCB,0x0020};
+    r->BC.bytes.high = 0xB1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x62, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.PF );
+    test(bool, false, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, true, r->AF.bytes.low.CF );
+
+    // SLA (HL)
+    oc = {0,0xCB,0x0026};
+    memory[0x7823] = 0xB1;
+    r->HL.word = 0x7823;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x62, memory[0x7823] );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.PF );
+    test(bool, false, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, true, r->AF.bytes.low.CF );
+
+    // SRA B
+    oc = {0,0xCB,0x0028};
+    r->BC.bytes.high = 0xB8;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0xDC, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.PF );
+    test(bool, true, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, false, r->AF.bytes.low.CF );
+
+    // SLL B
+    oc = {0,0xCB,0x0030};
+    r->BC.bytes.high = 0xB1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x63, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, true, r->AF.bytes.low.PF );
+    test(bool, false, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, true, r->AF.bytes.low.CF );
+
+    // SRL B
+    oc = {0,0xCB,0x0038};
+    r->BC.bytes.high = 0x8F;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x47, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, false, r->AF.bytes.low.HF );
+    test(bool, true, r->AF.bytes.low.PF );
+    test(bool, false, r->AF.bytes.low.SF );
+    test(bool, false, r->AF.bytes.low.ZF );
+    test(bool, true, r->AF.bytes.low.CF );
+
+    // BIT 0,B
+    oc = {0,0xCB,0x0040};
+    r->BC.bytes.high = 0x3;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x3, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, true, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.ZF );
+
+    // BIT 0,B
+    oc = {0,0xCB,0x0040};
+    r->BC.bytes.high = 0x2;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x2, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, true, r->AF.bytes.low.HF );
+    test(bool, true, r->AF.bytes.low.ZF );
+
+    // BIT 1,B
+    oc = {0,0xCB,0x0048};
+    r->BC.bytes.high = 0x2;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x2, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, true, r->AF.bytes.low.HF );
+    test(bool, false, r->AF.bytes.low.ZF );
+
+    // BIT 1,B
+    oc = {0,0xCB,0x0048};
+    r->BC.bytes.high = 0x1;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x1, r->BC.bytes.high );
+    test(bool, false, r->AF.bytes.low.NF );
+    test(bool, true, r->AF.bytes.low.HF );
+    test(bool, true, r->AF.bytes.low.ZF );
+
+    // RES 0,B
+    oc = {0,0xCB,0x0080};
+    r->BC.bytes.high = 0x3;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x2, r->BC.bytes.high );
+
+    // RES 0,(HL)
+    oc = {0,0xCB,0x0086};
+    memory[0x5673] = 0x3;
+    r->HL.word = 0x5673;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x2, memory[0x5673] );
+
+    // RES 1,B
+    oc = {0,0xCB,0x0088};
+    r->BC.bytes.high = 0x3;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x1, r->BC.bytes.high );
+
+    // SET 0,B
+    oc = {0,0xCB,0x00C0};
+    r->BC.bytes.high = 0x4;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x5, r->BC.bytes.high );
+
+    // SET 0,(HL)
+    oc = {0,0xCB,0x00C6};
+    memory[0x6045] = 0x4;
+    r->HL.word = 0x6045;
+    instructions[oc].execute(&proc, &memory, data);
+    test(uint8_t, 0x5, memory[0x6045] );
 
     std::cout << std::endl;
 }

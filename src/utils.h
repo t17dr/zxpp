@@ -41,6 +41,7 @@ constexpr INT rolc(INT& val, bool carry)
     return carry;
 }
 
+
 // Circular bit rotation right through carry bit
 template <typename INT>
 constexpr INT rorc(INT& val, bool carry)
@@ -51,6 +52,55 @@ constexpr INT rorc(INT& val, bool carry)
     carry = (bool) (val & 0x01);
     val = (val >> 1) | ((carryOld & 0x01) << (sizeof(INT)*CHAR_BIT-1));
     return carry;
+}
+
+// SLA instruction
+template <typename INT>
+constexpr void sla(INT& val, Z80Registers* r, bool sll = false)
+{
+    static_assert(std::is_unsigned<INT>::value,
+                  "SLA only makes sense for unsigned types.");
+    r->AF.bytes.low.CF = (bool) (val >> (sizeof(INT)*CHAR_BIT-1));
+    val = val << 1;
+    if (sll) { val |= 1; }
+    r->AF.bytes.low.SF = (bool)(val >> 7);
+    r->AF.bytes.low.ZF = val == 0;
+    r->AF.bytes.low.HF = false;
+    r->AF.bytes.low.PF = hasEvenParity(val);
+    r->AF.bytes.low.NF = false;
+}
+
+// SRA instruction
+template <typename INT>
+constexpr void sra(INT& val, Z80Registers* r)
+{
+    static_assert(std::is_unsigned<INT>::value,
+                  "SRA only makes sense for unsigned types.");
+    r->AF.bytes.low.CF = (bool) (val & 0x01);
+    uint8_t leftBit =  val & (1 << (sizeof(INT)*CHAR_BIT-1));
+    val = val >> 1;
+    val &= 0x7F;
+    val |= leftBit;
+    r->AF.bytes.low.SF = (bool)(val >> 7);
+    r->AF.bytes.low.ZF = val == 0;
+    r->AF.bytes.low.HF = false;
+    r->AF.bytes.low.PF = hasEvenParity(val);
+    r->AF.bytes.low.NF = false;
+}
+
+// SRL instruction
+template <typename INT>
+constexpr void srl(INT& val, Z80Registers* r)
+{
+    static_assert(std::is_unsigned<INT>::value,
+                  "SRL only makes sense for unsigned types.");
+    r->AF.bytes.low.CF = (bool) (val & 0x01);
+    val = val >> 1;
+    r->AF.bytes.low.SF = (bool)(val >> 7);
+    r->AF.bytes.low.ZF = val == 0;
+    r->AF.bytes.low.HF = false;
+    r->AF.bytes.low.PF = hasEvenParity(val);
+    r->AF.bytes.low.NF = false;
 }
 
 // Sign of val
