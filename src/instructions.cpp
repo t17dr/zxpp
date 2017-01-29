@@ -1,5 +1,7 @@
 #include "instructions.h"
 
+#include "utils.h"
+
 std::unordered_map<opcode, Instruction> z80InstructionSet()
 {
     std::unordered_map<opcode, Instruction> instructions;
@@ -155,7 +157,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             if (r->BC.bytes.high != 0)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -225,7 +227,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     oc = {0,0,0x0018};
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->PC += d[0];
+            r->PC += (int8_t) d[0];
         }
     };
     instructions[oc] = i;
@@ -302,7 +304,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -370,7 +372,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -450,7 +452,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -507,7 +509,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // LD (HL),n
     oc = {0,0,0x0036};
-    i = { 10, 10, 0, INST{
+    i = { 10, 10, 1, INST{
             (*m)[z->getRegisters()->HL.word] = d[0];
         }
     };
@@ -529,7 +531,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -548,7 +550,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // LD A,(nn)
     oc = {0,0,0x003A};
-    i = { 13, 13, 0, INST{
+    i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
         }
@@ -1650,7 +1652,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // ADD A,n
     oc = {0,0,0x00C6};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -2123,7 +2125,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // DI
     oc = {0,0,0x00F3};
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
@@ -2208,7 +2210,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // EI
     oc = {0,0,0x00FB};
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
@@ -2402,7 +2404,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             if (r->BC.bytes.high != 0)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -2472,7 +2474,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     oc = {0,0xDD,0x0018};
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->PC += d[0];
+            r->PC += (int8_t) d[0];
         }
     };
     instructions[oc] = i;
@@ -2549,7 +2551,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -2617,7 +2619,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -2697,7 +2699,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -2776,7 +2778,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -4649,7 +4651,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             if (r->BC.bytes.high != 0)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -4719,7 +4721,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
     oc = {0,0xFD,0x0018};
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->PC += d[0];
+            r->PC += (int8_t) d[0];
         }
     };
     instructions[oc] = i;
@@ -4796,7 +4798,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -4864,7 +4866,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -4944,7 +4946,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == false)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
@@ -5023,7 +5025,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == true)
             {
-                r->PC += d[0];
+                r->PC += (int8_t) d[0];
             }
         }
     };
