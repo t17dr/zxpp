@@ -4,7 +4,10 @@
 #include <stdint.h>
 #include <vector>
 
-#include "Z80.h"
+//#include "Z80.h"
+class Z80;
+//struct Z80Registers;
+
 #include "memory.h"
 
 struct Instruction {

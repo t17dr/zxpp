@@ -7,7 +7,8 @@ void _test(T correct, T input, char* file, int line)
     else 
     {
         std::cerr << std::endl << "Test did not pass: ";
-        std::cerr << +input << " is not equal " << +correct;
+        //std::cerr << +input << " is not equal " << +correct;
+        
         std::cerr << " [" << file << "; line " << line << std::endl;
     }
 }
@@ -955,6 +956,27 @@ void runTests(Z80& proc, Spectrum48KMemory& memory)
     r->HL.word = 0x6045;
     instructions[oc].execute(&proc, &memory, data);
     test(uint8_t, 0x5, memory[0x6045] );
+
+    // Instruction parsing
+    std::vector<uint8_t> bytes = { 0xDD, 0x4B };
+    opcode a = parseNextInstruction(bytes.data());
+    opcode b = {0, 0xDD, 0x4B};
+    test(opcode, b, a);
+
+    bytes = { 0xED, 0x12 };
+    a = parseNextInstruction(bytes.data());
+    b = {0, 0xED, 0x12};
+    test(opcode, b, a);
+
+    bytes = { 0xFD, 0xED, 0x4B };
+    a = parseNextInstruction(bytes.data());
+    b = {0, 0xED, 0x4B};
+    test(opcode, b, a);
+
+    bytes = { 0xDD, 0xCB, 0xFF };
+    a = parseNextInstruction(bytes.data());
+    b = {0xDD, 0xCB, 0xFF};
+    test(opcode, b, a);
 
     std::cout << std::endl;
 }

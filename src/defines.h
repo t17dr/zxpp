@@ -11,3 +11,5 @@
 #endif
 
 #endif
+
+#define NUM_INSTRUCTIONS 2816
