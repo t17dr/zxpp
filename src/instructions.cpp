@@ -1735,7 +1735,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // ADC A,n
     oc = {0,0,0x00CE};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -1821,7 +1821,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // SUB n
     oc = {0,0,0x00D6};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -3982,7 +3982,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // ADC A,n
     oc = {0,0xDD,0x00CE};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4068,7 +4068,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // SUB n
     oc = {0,0xDD,0x00D6};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -6229,7 +6229,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // ADC A,n
     oc = {0,0xFD,0x00CE};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -6315,7 +6315,7 @@ std::unordered_map<opcode, Instruction> z80InstructionSet()
 
     // SUB n
     oc = {0,0xFD,0x00D6};
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
