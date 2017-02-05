@@ -65,6 +65,7 @@ void Z80::init()
 Z80::Z80()
 {
     init();
+    m_cyclesSinceLastFrame = 0;
 }
 
 Z80Registers* Z80::getRegisters()
@@ -157,19 +158,29 @@ void Z80::nextInstruction(Spectrum48KMemory* m)
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
     m_registers.PC += numBytes;
     int cycles = runInstruction(instruction, m);
-    double timeTaken = (int)cycles * CLOCK_TIME;
+    
+    m_cyclesSinceLastFrame += cycles;
 
-    int i = 0;
-    duration<double> timeSpan;
-    do
-    {
-        i++;
-        auto now = high_resolution_clock::now();
-        timeSpan = duration_cast<duration<double>>(now - start);
-    } while ( timeSpan.count() < timeTaken );
-    int bb = i;
+    // double timeTaken = (int)cycles * CLOCK_TIME;
+
+    // duration<double> timeSpan;
+    // do
+    // {
+    //     auto now = high_resolution_clock::now();
+    //     timeSpan = duration_cast<duration<double>>(now - start);
+    // } while ( timeSpan.count() < timeTaken );
 
 }
+
+void Z80::simulateFrame(Spectrum48KMemory* m)
+{
+    while ( m_cyclesSinceLastFrame <= (1.0/50.0) / CLOCK_TIME )
+    {
+        nextInstruction(m);
+    }
+    m_cyclesSinceLastFrame = 0;
+}
+
 
 void Z80::printState()
 {

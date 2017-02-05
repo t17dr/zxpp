@@ -145,10 +145,11 @@ class Z80 {
         int getInterruptMode();
         void setInterruptMode(int m);
 
-        void nextInstruction(Spectrum48KMemory* m);
+        void simulateFrame(Spectrum48KMemory* m);
 
         void printState();
     private:
+        void nextInstruction(Spectrum48KMemory* m);
         int runInstruction(int instruction, Spectrum48KMemory* m);
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;
@@ -161,6 +162,8 @@ class Z80 {
         int m_interruptMode;
 
         std::array<Instruction, NUM_INSTRUCTIONS> m_instructionSet;
+
+        int m_cyclesSinceLastFrame;
 };
 
 #endif

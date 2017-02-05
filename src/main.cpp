@@ -23,8 +23,8 @@
 #define REFRESH_RATE (1.0/50.0)
 
 inline bool fileExists (const std::string& name) {
-    struct stat buffer;   
-    return (stat (name.c_str(), &buffer) == 0); 
+    struct stat buffer;
+    return (stat (name.c_str(), &buffer) == 0);
 }
 
 int main(int argc, char* args[])
@@ -137,7 +137,7 @@ int main(int argc, char* args[])
     auto now1 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> timeSpan1 = std::chrono::duration_cast<std::chrono::duration<double>>(now1 - start1);
     std::cout << "Direct operator write: " << timeSpan1.count() << std::endl;
-    
+
     start1 = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < ITERS; i++)
@@ -184,7 +184,7 @@ int main(int argc, char* args[])
     now1 = std::chrono::high_resolution_clock::now();
     timeSpan1 = std::chrono::duration_cast<std::chrono::duration<double>>(now1 - start1);
     std::cout << "Pointer operator write: " << timeSpan1.count() << std::endl;
-    
+
     start1 = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < ITERS; i++)
@@ -246,6 +246,7 @@ int main(int argc, char* args[])
     TTF_Font* font = TTF_OpenFont("x64/Debug/OverpassMono-Regular.ttf", 40);
 
     SDL_Color c = { 255, 0, 0, 255 };
+    SDL_Color c2 = { 255, 255, 0, 255 };
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     Display display(&memory, renderer);
 
@@ -254,17 +255,15 @@ int main(int argc, char* args[])
     // Main loop
 	bool quit = false;
     SDL_Event e;
-    while (!quit) 
+    while (!quit)
     {
-        while (SDL_PollEvent(&e)) 
+        while (SDL_PollEvent(&e))
         {
-            if (e.type == SDL_QUIT) 
+            if (e.type == SDL_QUIT)
             {
                 quit = true;
             }
         }
-
-        proc.nextInstruction(&memory);
 
 
         auto now = std::chrono::high_resolution_clock::now();
@@ -272,22 +271,33 @@ int main(int argc, char* args[])
 
         if (timeSpan.count() >= REFRESH_RATE)
         {
-            SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );        
+            start = std::chrono::high_resolution_clock::now();
+            proc.simulateFrame(&memory);
+            SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
             SDL_RenderClear(renderer);
-            start = std::chrono::high_resolution_clock::now();            
             display.draw();
             std::string s = std::to_string(proc.getRegisters()->PC);
             std::string s2 = std::to_string(proc.getRegisters()->HL.word);
-            // SDL_Surface* surface = TTF_RenderText_Solid(font, s.c_str(), c);
-            // SDL_Surface* surface2 = TTF_RenderText_Solid(font, s2.c_str(), c);
-            // SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, surface);
-            // SDL_Texture* t2 = SDL_CreateTextureFromSurface(renderer, surface2);
-            // SDL_Rect rect = {0,0,256,192/2};
-            // SDL_Rect rect2 = {0,192/2,256,192/2};
-            // SDL_RenderCopy(renderer, t, NULL, &rect);
-            // SDL_RenderCopy(renderer, t2, NULL, &rect2);
-            // SDL_DestroyTexture(t);
-            // SDL_DestroyTexture(t2);
+
+
+            SDL_Rect rect3 = {0,192/2-20,256,40};
+            std::string fps = std::to_string(1.0/timeSpan.count());
+            SDL_Surface* surface3 = TTF_RenderText_Solid(font, fps.c_str(), c2);
+            SDL_Texture* t3 = SDL_CreateTextureFromSurface(renderer, surface3);
+            SDL_RenderCopy(renderer, t3, NULL, &rect3);
+            SDL_DestroyTexture(t3);
+
+
+            SDL_Surface* surface = TTF_RenderText_Solid(font, s.c_str(), c);
+            SDL_Surface* surface2 = TTF_RenderText_Solid(font, s2.c_str(), c);
+            SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, surface);
+            SDL_Texture* t2 = SDL_CreateTextureFromSurface(renderer, surface2);
+            SDL_Rect rect = {0,0,256,192/2};
+            SDL_Rect rect2 = {0,192/2,256,192/2};
+            SDL_RenderCopy(renderer, t, NULL, &rect);
+            SDL_RenderCopy(renderer, t2, NULL, &rect2);
+            SDL_DestroyTexture(t);
+            SDL_DestroyTexture(t2);
         }
 
 
