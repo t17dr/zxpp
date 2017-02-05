@@ -1,9 +1,29 @@
 #ifndef Z80_H
 #define Z80_H
 
+// #include "instruction.h"
+#include "defines.h"
+#include "memory.h"
+#include "instructions.h"
+
+#include <iostream>
 #include <stdint.h>
+#include <set>
+#include <tuple>
+#include <vector>
+#include <chrono>
+// #include <unordered_map>
+#include <assert.h>
+#include <array>
+
+typedef std::tuple<uint8_t, uint8_t, uint8_t> opcode;
+
+static const std::set<uint8_t> prefixes = { 0xDD, 0xFD, 0xED, 0xCB };
 
 #define CLOCK_TIME ( 1.0 / 3500000.0 )
+
+// Parse the next instruction from given memory location
+int parseNextInstruction(uint8_t* location);
 
 struct Word {                   // Endianness dependent!
     uint8_t low;
@@ -124,7 +144,12 @@ class Z80 {
         void halt();
         int getInterruptMode();
         void setInterruptMode(int m);
+
+        void nextInstruction(Spectrum48KMemory* m);
+
+        void printState();
     private:
+        int runInstruction(int instruction, Spectrum48KMemory* m);
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;
         bool m_IFF1;                    // Interrupt flip-flops
@@ -134,6 +159,8 @@ class Z80 {
         bool m_isHalted;
         bool m_isWaiting;               // WAIT pin active
         int m_interruptMode;
+
+        std::array<Instruction, NUM_INSTRUCTIONS> m_instructionSet;
 };
 
 #endif
