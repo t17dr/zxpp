@@ -272,7 +272,12 @@ int main(int argc, char* args[])
         if (timeSpan.count() >= REFRESH_RATE)
         {
             start = std::chrono::high_resolution_clock::now();
+            
+            auto startTest = std::chrono::high_resolution_clock::now();            
             proc.simulateFrame(&memory);
+            auto nowTest = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> timeSpanTest = std::chrono::duration_cast<std::chrono::duration<double>>(nowTest - startTest);
+
             SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
             SDL_RenderClear(renderer);
             display.draw();
@@ -286,6 +291,13 @@ int main(int argc, char* args[])
             SDL_Texture* t3 = SDL_CreateTextureFromSurface(renderer, surface3);
             SDL_RenderCopy(renderer, t3, NULL, &rect3);
             SDL_DestroyTexture(t3);
+
+            // SDL_Rect rect3 = {0,192/2-20,256,40};
+            // std::string testTime = std::to_string(1.0/timeSpanTest.count());
+            // SDL_Surface* surface3 = TTF_RenderText_Solid(font, testTime.c_str(), c2);
+            // SDL_Texture* t3 = SDL_CreateTextureFromSurface(renderer, surface3);
+            // SDL_RenderCopy(renderer, t3, NULL, &rect3);
+            // SDL_DestroyTexture(t3);
 
 
             SDL_Surface* surface = TTF_RenderText_Solid(font, s.c_str(), c);

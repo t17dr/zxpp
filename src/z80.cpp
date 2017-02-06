@@ -151,8 +151,6 @@ void Z80::nextInstruction(Spectrum48KMemory* m)
     using namespace std::chrono;
     auto start = high_resolution_clock::now();
 
-    // printState();    
-
     int instruction = parseNextInstruction(&(m->begin())[m_registers.PC]);
     // int numBytes = ( std::get<0>(instruction) == 0 ) ? ( (std::get<1>(instruction) == 0) ? 1 : 2 ) : 3;
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
@@ -160,15 +158,6 @@ void Z80::nextInstruction(Spectrum48KMemory* m)
     int cycles = runInstruction(instruction, m);
     
     m_cyclesSinceLastFrame += cycles;
-
-    // double timeTaken = (int)cycles * CLOCK_TIME;
-
-    // duration<double> timeSpan;
-    // do
-    // {
-    //     auto now = high_resolution_clock::now();
-    //     timeSpan = duration_cast<duration<double>>(now - start);
-    // } while ( timeSpan.count() < timeTaken );
 
 }
 
