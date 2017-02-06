@@ -2798,7 +2798,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // LD A,(nn)
     oc = 314;
-    i = { 13, 13, 0, INST{
+    i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
         }
@@ -3520,7 +3520,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // SBC A,(IX+d)
     oc = 414;
-    i = { 19, 19, 0, INST{
+    i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IX.word+((int8_t)d[0])]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -3900,7 +3900,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // ADD A,n
     oc = 454;
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4207,7 +4207,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // EX (SP),IX
     oc = 483;
-    i = { 23, 23, 1, INST{
+    i = { 23, 23, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t tmp = r->IX.bytes.low;
             r->IX.bytes.low = (*m)[r->SP];
@@ -4373,7 +4373,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // DI
     oc = 499;
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
@@ -4458,7 +4458,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // EI
     oc = 507;
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
@@ -5045,7 +5045,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // LD A,(nn)
     oc = 570;
-    i = { 13, 13, 0, INST{
+    i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
         }
@@ -5767,7 +5767,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // SBC A,(IY+d)
     oc = 670;
-    i = { 19, 19, 0, INST{
+    i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IY.word+((int8_t)d[0])]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -6147,7 +6147,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // ADD A,n
     oc = 710;
-    i = { 7, 7, 0, INST{
+    i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -6454,7 +6454,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // EX (SP),IY
     oc = 739;
-    i = { 23, 23, 1, INST{
+    i = { 23, 23, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint8_t tmp = r->IY.bytes.low;
             r->IY.bytes.low = (*m)[r->SP];
@@ -6620,7 +6620,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // DI
     oc = 755;
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
@@ -6705,7 +6705,7 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // EI
     oc = 763;
-    i = { 4, 4, 1, INST{
+    i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
