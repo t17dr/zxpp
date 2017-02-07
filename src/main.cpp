@@ -46,7 +46,7 @@ int main(int argc, char* args[])
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0,255);
     auto dice = std::bind ( distribution, generator );
-    for (int i = 0; i < memory.screen_size; i++)
+    for (int i = 0; i < memory.screen_size + memory.screenColor_size; i++)
     {
         int dice_roll = dice();
         *(memory.screenMemory + i) = (uint8_t) dice_roll;

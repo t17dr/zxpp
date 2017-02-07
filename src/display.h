@@ -15,10 +15,14 @@ class Display {
         void draw();
     private:
         Spectrum48KMemory* m_memory;
-        // SDL_Point* m_points;
-        // char* m_pixels;
         SDL_Texture* m_texture;
         SDL_Renderer* m_renderer;
+
+        // Are the flashing colors currently inverted?
+        bool m_inverted;
+
+        // Number of frames since last inversion of colors
+        int m_frames;
 };
 
 #endif

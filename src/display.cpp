@@ -2,11 +2,12 @@
 
 Display::Display(Spectrum48KMemory* memory, SDL_Renderer* renderer)
     : m_memory(memory),
-      m_renderer(renderer)
+      m_renderer(renderer),
+      m_inverted(false),
+      m_frames(0)
 {
     m_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
                     DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    // char* m_pixels = new char[DISPLAY_WIDTH * DISPLAY_HEIGHT * 3];
 }
 
 Display::~Display()
@@ -34,27 +35,28 @@ void Display::draw()
             uint16_t memPos = memY |= x;
             for (uint8_t bit = 0; bit < 8; bit++)
             {
-                uint8_t value = ((*m_memory)[memPos] & (1 << bit)) > 0 ? 255 : 0;
-                // SDL_SetRenderDrawColor(renderer, value, value, value, 255);
+                // Find the corresponding color attributes
+                // http://www.animatez.co.uk/computers/zx-spectrum/screen-memory-layout/
+                int xReal = x * 8 + bit;
+                uint16_t memCol = 0x5800 + ( (y / 8) * (DISPLAY_WIDTH / 8) + (xReal / 8) );
+                uint8_t attributes = (*m_memory)[memCol];
+                
+                // Find the color (each is stored as 1 bit per channel in GRB format)
+                bool col = ((*m_memory)[memPos] & (1 << bit));
+                col = (m_inverted && (col >> 7)) ? !col : col;
+                uint8_t r = col ? (attributes & 0x2) >> 1 : (attributes & 0xF) >> 4;
+                uint8_t g = col ? (attributes & 0x4) >> 2 : (attributes & 0x20) >> 5;
+                uint8_t b = col ? (attributes & 0x1) : (attributes & 0x8) >> 3;
 
-                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 ] = value;
-                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 + 1 ] = value;
-                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 + 2 ] = value;
+                // Adjust by brightness flag
+                r *= (attributes & 0x40) ? 255 : 128;
+                g *= (attributes & 0x40) ? 255 : 128;
+                b *= (attributes & 0x40) ? 255 : 128;
 
-                // SDL_RenderDrawPoint(renderer, x*8+bit, y);
+                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 ] = r;
+                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 + 1 ] = g;
+                ((uint8_t*)pixels)[ (DISPLAY_WIDTH * y + (x*8+bit)) * 3 + 2 ] = b;
 
-                // SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void*)m_pixels,
-                //     DISPLAY_WIDHT,
-                //     DISPLAY_HEIGHT,
-                //     24,                    // bpp
-                //     DISPLAY_WIDTH * 3,     // pitch
-                //     0xFF0000,              // red mask
-                //     0x00FF00,              // green mask
-                //     0x0000FF,              // blue mask
-                //     0);                    // alpha mask (none)
-
-                // t = SDL_CreateTextureFromSurface(m_renderer, surface);
-                // SDL_Rect r = {0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT};*/
             }
         }
     }
@@ -62,4 +64,10 @@ void Display::draw()
     SDL_UnlockTexture(m_texture);
     SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
 
+    m_frames++;
+    if (m_frames > 15)
+    {
+        m_frames = 0;
+        m_inverted = !m_inverted;
+    }
 }
