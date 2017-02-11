@@ -147,7 +147,7 @@ class Z80 {
 
         void simulateFrame(Spectrum48KMemory* m);
 
-        void printState();
+        void printState(Spectrum48KMemory* m);
     private:
         void nextInstruction(Spectrum48KMemory* m);
         int runInstruction(int instruction, Spectrum48KMemory* m);

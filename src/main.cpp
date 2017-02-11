@@ -273,24 +273,24 @@ int main(int argc, char* args[])
         {
             start = std::chrono::high_resolution_clock::now();
             
-            auto startTest = std::chrono::high_resolution_clock::now();            
+            //auto startTest = std::chrono::high_resolution_clock::now();            
             proc.simulateFrame(&memory);
-            auto nowTest = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> timeSpanTest = std::chrono::duration_cast<std::chrono::duration<double>>(nowTest - startTest);
+            //auto nowTest = std::chrono::high_resolution_clock::now();
+            //std::chrono::duration<double> timeSpanTest = std::chrono::duration_cast<std::chrono::duration<double>>(nowTest - startTest);
 
-            SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
-            SDL_RenderClear(renderer);
+            //SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
+            //SDL_RenderClear(renderer);
             display.draw();
-            std::string s = std::to_string(proc.getRegisters()->PC);
-            std::string s2 = std::to_string(proc.getRegisters()->HL.word);
+            //std::string s = std::to_string(proc.getRegisters()->PC);
+            //std::string s2 = std::to_string(proc.getRegisters()->HL.word);
 
 
-            SDL_Rect rect3 = {0,192/2-20,256,40};
-            std::string fps = std::to_string(1.0/timeSpan.count());
-            SDL_Surface* surface3 = TTF_RenderText_Solid(font, fps.c_str(), c2);
-            SDL_Texture* t3 = SDL_CreateTextureFromSurface(renderer, surface3);
-            SDL_RenderCopy(renderer, t3, NULL, &rect3);
-            SDL_DestroyTexture(t3);
+            //SDL_Rect rect3 = {0,192/2-20,256,40};
+            //std::string fps = std::to_string(1.0/timeSpan.count());
+            //SDL_Surface* surface3 = TTF_RenderText_Solid(font, fps.c_str(), c2);
+            //SDL_Texture* t3 = SDL_CreateTextureFromSurface(renderer, surface3);
+            //SDL_RenderCopy(renderer, t3, NULL, &rect3);
+            //SDL_DestroyTexture(t3);
 
             // SDL_Rect rect3 = {0,192/2-20,256,40};
             // std::string testTime = std::to_string(1.0/timeSpanTest.count());
@@ -300,16 +300,16 @@ int main(int argc, char* args[])
             // SDL_DestroyTexture(t3);
 
 
-            SDL_Surface* surface = TTF_RenderText_Solid(font, s.c_str(), c);
-            SDL_Surface* surface2 = TTF_RenderText_Solid(font, s2.c_str(), c);
-            SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, surface);
-            SDL_Texture* t2 = SDL_CreateTextureFromSurface(renderer, surface2);
-            SDL_Rect rect = {0,0,256,192/2};
-            SDL_Rect rect2 = {0,192/2,256,192/2};
-            SDL_RenderCopy(renderer, t, NULL, &rect);
-            SDL_RenderCopy(renderer, t2, NULL, &rect2);
-            SDL_DestroyTexture(t);
-            SDL_DestroyTexture(t2);
+            //SDL_Surface* surface = TTF_RenderText_Solid(font, s.c_str(), c);
+            //SDL_Surface* surface2 = TTF_RenderText_Solid(font, s2.c_str(), c);
+            //SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, surface);
+            //SDL_Texture* t2 = SDL_CreateTextureFromSurface(renderer, surface2);
+            //SDL_Rect rect = {0,0,256,192/2};
+            //SDL_Rect rect2 = {0,192/2,256,192/2};
+            //SDL_RenderCopy(renderer, t, NULL, &rect);
+            //SDL_RenderCopy(renderer, t2, NULL, &rect2);
+            //SDL_DestroyTexture(t);
+            //SDL_DestroyTexture(t2);
         }
 
 

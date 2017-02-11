@@ -140,9 +140,9 @@ int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
     }
 
     // if (m_registers.PC >= 0x0adc && m_registers.PC < 0x1180)
-    if (m_registers.PC >= 0x128e && m_registers.PC < 0x1350)
+    if (m_registers.PC >= 0x1601)
     {
-        printState();
+        //printState(m);
     }
 
     return cyclesTaken;
@@ -172,7 +172,7 @@ void Z80::simulateFrame(Spectrum48KMemory* m)
 }
 
 
-void Z80::printState()
+void Z80::printState(Spectrum48KMemory* m)
 {
     std::cout << std::hex;
     std::cout << "S = " << m_registers.AF.bytes.low.SF << " Z = " << m_registers.AF.bytes.low.ZF;
@@ -188,5 +188,7 @@ void Z80::printState()
     std::cout << "Ax = " << +m_registers.AFx.bytes.high << " BCx = " << m_registers.BCx.word;
     std::cout << " DEx = " << m_registers.DEx.word << " HLx = " << m_registers.HLx.word;
     std::cout << " IX = " << m_registers.IX.word << " IY = " << m_registers.IY.word << std::endl;
+
+    std::cout << "(HL) = " << +(m->memory[m_registers.HL.word]) << std::endl;
 
 }
