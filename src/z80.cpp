@@ -8,6 +8,12 @@ int parseNextInstruction(uint8_t* location)
         bytes.push_back(*location);
         location++;
     }
+
+    if (bytes.size() == 2 && ( (bytes[0] == 0xDD || bytes[0] == 0xFD) && bytes[1] == 0xCB ))
+    {
+        // if the prefixes are DDCB or FDCB, then the opcode is in forth byte after displacement byte
+        location++;
+    }
     bytes.push_back(*location);
     
     if ( bytes.size() > 1 && bytes[1] == 0xED ) { bytes[0] = 0; }     // Ignore other prefixes before ED
@@ -15,8 +21,6 @@ int parseNextInstruction(uint8_t* location)
     assert(bytes.size() <= 3);
 
     while (bytes.size() < 3) { bytes.insert(bytes.begin(), 0); }   // Pad with zeros
-
-    // return opcode(bytes[0], bytes[1], bytes[2]);
 
     int pref1 = 0;
     switch (bytes[0])
@@ -110,23 +114,16 @@ void Z80::setInterruptMode(int m)
 
 int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
 {
-    
-    if (m_registers.PC == 0x09F4 || 
-    (m_registers.PC > 1660-30 && m_registers.PC < 1660+30) || 
-    (m_registers.PC > 2079-30 && m_registers.PC < 2079+30) || 
-    (m_registers.PC > 2100-30 && m_registers.PC < 2100+30) || 
-    (m_registers.PC > 2601-30 && m_registers.PC < 2601+30) || 
-    (m_registers.PC > 3716-30 && m_registers.PC < 3716+30))
-    {
-        int gsd = 3;
-    }
-
-    /*auto found = m_instructionSet.find(instBytes);
-    if (found == m_instructionSet.end()) { instBytes = {0, 0, 0}; }  // NOP*/
     Instruction instruction = m_instructionSet[instBytes];
 
     std::vector<uint8_t> data;
-    for (int i = 0; i < instruction.numDataBytes; i++)
+    int i = 0;
+    if ( instBytes >= 2304 && instBytes <= 2815 )
+    {
+        // in DDCB and FDCB instructions, data byte is before opcode
+        i = -1;
+    }
+    for (; i < instruction.numDataBytes; i++)
     {
         data.push_back((*m).memory[m_registers.PC + i]);
     }
@@ -142,6 +139,11 @@ int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
         cyclesTaken = instruction.cyclesOnJump;
     }
 
+    // if (m_registers.PC >= 0x0adc && m_registers.PC < 0x1180)
+    if (m_registers.PC >= 0x128e && m_registers.PC < 0x1350)
+    {
+        printState();
+    }
 
     return cyclesTaken;
 }
@@ -152,7 +154,6 @@ void Z80::nextInstruction(Spectrum48KMemory* m)
     auto start = high_resolution_clock::now();
 
     int instruction = parseNextInstruction(&(m->begin())[m_registers.PC]);
-    // int numBytes = ( std::get<0>(instruction) == 0 ) ? ( (std::get<1>(instruction) == 0) ? 1 : 2 ) : 3;
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
     m_registers.PC += numBytes;
     int cycles = runInstruction(instruction, m);
