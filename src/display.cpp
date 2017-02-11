@@ -44,7 +44,7 @@ void Display::draw()
                 // Find the color (each is stored as 1 bit per channel in GRB format)
                 bool col = ((*m_memory)[memPos] & (1 << bit));
                 col = (m_inverted && (col >> 7)) ? !col : col;
-                uint8_t r = col ? (attributes & 0x2) >> 1 : (attributes & 0xF) >> 4;
+                uint8_t r = col ? (attributes & 0x2) >> 1 : (attributes & 0x10) >> 4;
                 uint8_t g = col ? (attributes & 0x4) >> 2 : (attributes & 0x20) >> 5;
                 uint8_t b = col ? (attributes & 0x1) : (attributes & 0x8) >> 3;
 
