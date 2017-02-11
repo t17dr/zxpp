@@ -42,7 +42,7 @@ void Display::draw()
                 uint8_t attributes = (*m_memory)[memCol];
                 
                 // Find the color (each is stored as 1 bit per channel in GRB format)
-                bool col = ((*m_memory)[memPos] & (1 << bit));
+                bool col = ((*m_memory)[memPos] & (1 << (7 - bit)));
                 col = (m_inverted && (col >> 7)) ? !col : col;
                 uint8_t r = col ? (attributes & 0x2) >> 1 : (attributes & 0x10) >> 4;
                 uint8_t g = col ? (attributes & 0x4) >> 2 : (attributes & 0x20) >> 5;

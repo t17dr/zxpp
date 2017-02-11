@@ -229,6 +229,7 @@ int main(int argc, char* args[])
     // proc.printState();
 
     const std::string file = "48.rom";
+    // const std::string file = "testrom.bin";
     // const std::string file = "test.hex";
 
     std::ifstream inf;
