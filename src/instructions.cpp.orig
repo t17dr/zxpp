@@ -2029,7 +2029,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = {0,0,0x00E9};
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->PC = (*m)[r->HL.word];
+            //r->PC = (*m)[r->HL.word];
+            r->PC = r->HL.word;     // wtf
         }
     };
     instructions[oc] = i;
@@ -2757,8 +2758,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // LD (IX+d),n
     oc = {0,0xDD,0x0036};
-    i = { 19, 19, 1, INST{
-            (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = d[0];
+    i = { 19, 19, 2, INST{
+            (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = d[1];
         }
     };
     instructions[oc] = i;
@@ -5004,8 +5005,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
 
     // LD (IY+d),n
     oc = {0,0xFD,0x0036};
-    i = { 19, 19, 1, INST{
-            (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = d[0];
+    i = { 19, 19, 2, INST{
+            (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = d[1];
         }
     };
     instructions[oc] = i;

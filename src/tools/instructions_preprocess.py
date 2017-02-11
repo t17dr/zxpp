@@ -50,6 +50,8 @@ def validate(lines):
             num_bytes = 0
             if "nn" in operands:
                 num_bytes = 2
+            elif ("n" in operands) and ("d" in operands):
+                num_bytes = 2
             elif ("n" in operands) or ("d" in operands):
                 num_bytes = 1
 
