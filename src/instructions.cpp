@@ -1793,7 +1793,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 211;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[d[0]] = r->AF.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -1886,7 +1887,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 219;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->AF.bytes.high = (*(z->getIoPorts()))[d[0]];
+            // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
+            r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
         }
     };
     instructions[oc] = i;
@@ -4041,7 +4043,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 467;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[d[0]] = r->AF.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -4134,7 +4137,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 475;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->AF.bytes.high = (*(z->getIoPorts()))[d[0]];
+            // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
+            r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
         }
     };
     instructions[oc] = i;
@@ -6288,7 +6292,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 723;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[d[0]] = r->AF.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -6381,7 +6386,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 731;
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            r->AF.bytes.high = (*(z->getIoPorts()))[d[0]];
+            // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
+            r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
         }
     };
     instructions[oc] = i;
@@ -6755,11 +6761,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 832;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->BC.bytes.high = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->BC.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->BC.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->BC.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.high == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -6769,7 +6776,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 833;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->BC.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->BC.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->BC.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -6843,11 +6851,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 840;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->BC.bytes.low = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->BC.bytes.low = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->BC.bytes.low = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->BC.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->BC.bytes.low == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -6857,7 +6866,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 841;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->BC.bytes.low;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->BC.bytes.low;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->BC.bytes.low);
         }
     };
     instructions[oc] = i;
@@ -6932,11 +6942,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 848;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->DE.bytes.high = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->DE.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];¨
+            r->DE.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->DE.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.high == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -6946,7 +6957,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 849;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->DE.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->DE.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->DE.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -7025,11 +7037,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 856;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->DE.bytes.low = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->DE.bytes.low = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->DE.bytes.low = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->DE.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->DE.bytes.low == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -7039,7 +7052,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 857;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->DE.bytes.low;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->DE.bytes.low;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->DE.bytes.low);
         }
     };
     instructions[oc] = i;
@@ -7119,11 +7133,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 864;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->HL.bytes.high = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->HL.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->HL.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->HL.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.high == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -7133,7 +7148,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 865;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->HL.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->HL.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->HL.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -7219,11 +7235,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 872;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->HL.bytes.low = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->HL.bytes.low = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->HL.bytes.low = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->HL.bytes.low >> 7;
+            r->AF.bytes.low.ZF = r->HL.bytes.low == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -7233,7 +7250,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 873;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->HL.bytes.low;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->HL.bytes.low;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->HL.bytes.low);
         }
     };
     instructions[oc] = i;
@@ -7320,10 +7338,11 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 880;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->HL.bytes.low = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = (z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high))) >> 7;
+            r->AF.bytes.low.ZF = (z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high))) == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)));
             r->AF.bytes.low.NF = false;
         }
     };
@@ -7333,7 +7352,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 881;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = 0;
+            // (*(z->getIoPorts()))[r->BC.bytes.low] = 0;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), 0);
         }
     };
     instructions[oc] = i;
@@ -7400,11 +7420,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 888;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            r->AF.bytes.high = (*(z->getIoPorts()))[r->BC.bytes.low];
-            r->AF.bytes.low.SF = (*(z->getIoPorts()))[r->BC.bytes.low] >> 7;
-            r->AF.bytes.low.ZF = (*(z->getIoPorts()))[r->BC.bytes.low] == 0;
+            // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)];
+            r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high));
+            r->AF.bytes.low.SF = r->AF.bytes.high >> 7;
+            r->AF.bytes.low.ZF = r->AF.bytes.high == 0;
             r->AF.bytes.low.HF = false;
-            r->AF.bytes.low.PF = hasEvenParity((*(z->getIoPorts()))[r->BC.bytes.low]);
+            r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
         }
     };
@@ -7414,7 +7435,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 889;
     i = { 12, 12, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = r->AF.bytes.high;
+            // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->AF.bytes.high;
+            z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->AF.bytes.high);
         }
     };
     instructions[oc] = i;
@@ -7511,7 +7533,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 930;
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            // (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            (*m)[r->HL.word] = z->getIoPorts()->readPort(r->BC.word);
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
@@ -7524,7 +7547,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 931;
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
@@ -7567,7 +7591,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 937;
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            // (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            (*m)[r->HL.word] = z->getIoPorts()->readPort(r->BC.word);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
@@ -7580,7 +7605,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 938;
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
@@ -7629,7 +7655,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 946;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            // (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            (*m)[r->HL.word] = z->getIoPorts()->readPort(r->BC.word);
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = true;
@@ -7646,7 +7673,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 947;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = true;
@@ -7701,7 +7729,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 954;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            // (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
+            (*m)[r->HL.word] = z->getIoPorts()->readPort(r->BC.word);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = true;
@@ -7718,7 +7747,8 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     oc = 955;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = true;

@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "memory.h"
 #include "instructions.h"
+#include "devices.h"
 
 #include <iostream>
 #include <stdint.h>
@@ -110,26 +111,15 @@ struct Z80Registers {
     } HLx;
 };
 
-struct Z80IOPorts {
-    uint8_t ports[0xFF+1];
+class Z80IOPorts {
+    public:
+        void registerDevice(IDevice* device);
 
-    inline uint8_t& operator[](uint16_t i)
-    {
-        return ports[i];
-    }
+        void writeToPort(uint16_t port, uint8_t value);
+        uint8_t readPort(uint16_t port);
 
-    inline const uint8_t& operator[](uint16_t i) const
-    {
-        return ports[i];
-    }
-
-    uint8_t* begin() { return ports; }
-    uint8_t* end()   { return ports + 0xff; }
-
-    uint8_t const* cbegin() const { return ports; }
-    uint8_t const* cend()   const { return ports + 0xff; }
-    uint8_t const* begin()  const { return cbegin(); }
-    uint8_t const* end()    const { return cend(); }
+    private:
+        std::vector<IDevice*> m_devices;
 };
 
 class Z80 {

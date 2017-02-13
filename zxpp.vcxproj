@@ -34,6 +34,7 @@
     <ClInclude Include="src\memory.h" />
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\display.h" />
+    <ClInclude Include="src\devices.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>

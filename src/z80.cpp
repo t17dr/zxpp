@@ -150,14 +150,14 @@ int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
 
 void Z80::nextInstruction(Spectrum48KMemory* m)
 {
-    using namespace std::chrono;
-    auto start = high_resolution_clock::now();
+    // using namespace std::chrono;
+    // auto start = high_resolution_clock::now();
 
     int instruction = parseNextInstruction(&(m->begin())[m_registers.PC]);
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
     m_registers.PC += numBytes;
     int cycles = runInstruction(instruction, m);
-    
+
     m_cyclesSinceLastFrame += cycles;
 
 }
@@ -191,4 +191,30 @@ void Z80::printState(Spectrum48KMemory* m)
 
     std::cout << "(HL) = " << +(m->memory[m_registers.HL.word]) << std::endl;
 
+}
+
+void Z80IOPorts::registerDevice(IDevice* device)
+{
+    m_devices.push_back(device);
+}
+
+void Z80IOPorts::writeToPort(uint16_t port, uint8_t value)
+{
+    for (IDevice* d : m_devices)
+    {
+        d->receiveData(value, port);
+    }
+}
+
+uint8_t Z80IOPorts::readPort(uint16_t port)
+{
+    for (IDevice* d : m_devices)
+    {
+        uint8_t data;
+        if (d->sendData(data, port))
+        {
+            return data;
+        }
+    }
+    return 0;
 }
