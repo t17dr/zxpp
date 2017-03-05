@@ -2,37 +2,50 @@
 
 #include "utils.h"
 
-std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
+std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 {
     // Must use constructor to be zero initialized (omitted NOPs)
-    std::array<Instruction, NUM_INSTRUCTIONS> instructions = std::array<Instruction, NUM_INSTRUCTIONS>();
+    std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> instructions 
+        = std::make_shared<std::array<Instruction, NUM_INSTRUCTIONS>>();
 
     // NOP
     int oc = 0;
-    Instruction i = { 4, 4, 0, INST{ ; } };
-    instructions[oc] = i;
+    Instruction i = { 4, 4, 0, INST{ ; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD BC,nn
     oc = 1;
-    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (BC),A
     oc = 2;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->BC.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC BC
     oc = 3;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, 1, r, INC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC B
     oc = 4;
@@ -41,9 +54,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x7F) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC B
     oc = 5;
@@ -52,14 +68,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x80) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,n
     oc = 6;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLCA
     oc = 7;
@@ -69,9 +91,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX AF, AF'
     oc = 8;
@@ -80,9 +105,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->AFx.word;
             r->AFx.word = r->AF.word;
             r->AF.word = tmp;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD HL,BC
     oc = 9;
@@ -91,26 +119,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add(r->HL.word, r->BC.word, r, ADD16);
             setUndocumentedFlags(r->HL.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(BC)
     oc = 10;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC BC
     oc = 11;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, DEC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC C
     oc = 12;
@@ -119,9 +156,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x7F) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC C
     oc = 13;
@@ -130,14 +170,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x80) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,n
     oc = 14;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRCA
     oc = 15;
@@ -147,9 +193,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DJNZ d
     oc = 16;
@@ -160,31 +209,43 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD DE,nn
     oc = 17;
-    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (DE),A
     oc = 18;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->DE.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC DE
     oc = 19;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, 1, r, INC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC D
     oc = 20;
@@ -193,9 +254,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x7F) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC D
     oc = 21;
@@ -204,14 +268,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x80) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,n
     oc = 22;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLA
     oc = 23;
@@ -220,18 +290,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rolc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR d
     oc = 24;
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD HL,DE
     oc = 25;
@@ -240,26 +316,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add(r->HL.word, r->DE.word, r, ADD16);
             setUndocumentedFlags(r->HL.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(DE)
     oc = 26;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC DE
     oc = 27;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, DEC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC E
     oc = 28;
@@ -268,9 +353,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x7F) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC E
     oc = 29;
@@ -279,14 +367,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x80) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,n
     oc = 30;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRA
     oc = 31;
@@ -295,9 +389,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rorc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NZ,d
     oc = 32;
@@ -307,14 +404,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD HL,nn
     oc = 33;
-    i = { 10, 10, 2, INST{ z->getRegisters()->HL.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->HL.word = CREATE_WORD(d[0], d[1]); },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),HL
     oc = 34;
@@ -322,18 +425,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->HL.bytes.low;
             (*m)[nn+1] = z->getRegisters()->HL.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC HL
     oc = 35;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, INC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC H
     oc = 36;
@@ -342,9 +451,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->HL.bytes.high == 0x7F) ? true : false;
             r->HL.bytes.high = add<uint8_t>(r->HL.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC H
     oc = 37;
@@ -353,19 +465,28 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->HL.bytes.high == 0x80) ? true : false;
             r->HL.bytes.high = add<uint8_t>(r->HL.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD H,n
     oc = 38;
-    i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.high = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // DAA
     oc = 39;
-    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // JR Z,d
     oc = 40;
@@ -375,9 +496,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD HL,HL
     oc = 41;
@@ -386,9 +510,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add(r->HL.word, r->HL.word, r, ADD16);
             setUndocumentedFlags(r->HL.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD HL,(nn)
     oc = 42;
@@ -396,18 +523,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             uint16_t in = CREATE_WORD((*m)[nn], (*m)[nn+1]);
             z->getRegisters()->HL.word = in;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC HL
     oc = 43;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, DEC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC L
     oc = 44;
@@ -416,9 +549,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->HL.bytes.low == 0x7F) ? true : false;
             r->HL.bytes.low = add<uint8_t>(r->HL.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC L
     oc = 45;
@@ -427,14 +563,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->HL.bytes.low == 0x80) ? true : false;
             r->HL.bytes.low = add<uint8_t>(r->HL.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD L,n
     oc = 46;
-    i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->HL.bytes.low = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CPL
     oc = 47;
@@ -443,9 +585,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ~(r->AF.bytes.high);
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NC,d
     oc = 48;
@@ -455,32 +600,44 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,nn
     oc = 49;
-    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),A
     oc = 50;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC SP
     oc = 51;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, 1, r, INC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC (HL)
     oc = 52;
@@ -491,9 +648,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, 1, r, INC8);
             (*m)[r->HL.word] = byte;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC (HL)
     oc = 53;
@@ -504,17 +664,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, -1, r, DEC8);
             (*m)[r->HL.word] = byte;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),n
     oc = 54;
     i = { 10, 10, 1, INST{
             (*m)[z->getRegisters()->HL.word] = d[0];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SCF
     oc = 55;
@@ -522,9 +688,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             z->getRegisters()->AF.bytes.low.CF = true;
             z->getRegisters()->AF.bytes.low.NF = false;
             z->getRegisters()->AF.bytes.low.HF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR C,d
     oc = 56;
@@ -534,9 +703,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 5, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD HL,SP
     oc = 57;
@@ -545,27 +717,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add(r->HL.word, r->SP, r, ADD16);
             setUndocumentedFlags(r->HL.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(nn)
     oc = 58;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC SP
     oc = 59;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC A
     oc = 60;
@@ -574,9 +755,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC A
     oc = 61;
@@ -585,14 +769,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,n
     oc = 62;
-    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CCF
     oc = 63;
@@ -602,374 +792,569 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = prevCarry;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,B
     oc = 64;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ }};
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   };
+    (*instructions)[oc] = i;
 
     // LD B,C
     oc = 65;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,D
     oc = 66;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,E
     oc = 67;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,H
     oc = 68;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,L
     oc = 69;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,(HL)
     oc = 70;
     i = { 7, 7, 0, INST{
             z->getRegisters()->BC.bytes.high = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,A
     oc = 71;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,B
     oc = 72;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,C
     oc = 73;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,D
     oc = 74;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,E
     oc = 75;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,H
     oc = 76;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,L
     oc = 77;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,(HL)
     oc = 78;
     i = { 7, 7, 0, INST{
             z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,A
     oc = 79;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,B
     oc = 80;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,C
     oc = 81;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,D
     oc = 82;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,E
     oc = 83;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,H
     oc = 84;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,L
     oc = 85;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,(HL)
     oc = 86;
     i = { 7, 7, 0, INST{
             z->getRegisters()->DE.bytes.high = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,A
     oc = 87;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,B
     oc = 88;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,C
     oc = 89;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,D
     oc = 90;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,E
     oc = 91;
-    i = { 4, 4, 0, INST{; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,H
     oc = 92;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,L
     oc = 93;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,(HL)
     oc = 94;
     i = { 7, 7, 0, INST{
             z->getRegisters()->DE.bytes.low = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,A
     oc = 95;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,B
     oc = 96;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,C
     oc = 97;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,D
     oc = 98;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,E
     oc = 99;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,H
     oc = 100;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,L
     oc = 101;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,(HL)
     oc = 102;
     i = { 7, 7, 0, INST{
             z->getRegisters()->HL.bytes.high = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD H,A
     oc = 103;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.high = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,B
     oc = 104;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,C
     oc = 105;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,D
     oc = 106;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,E
     oc = 107;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,H
     oc = 108;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,L
     oc = 109;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,(HL)
     oc = 110;
     i = { 7, 7, 0, INST{
             z->getRegisters()->HL.bytes.low = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD L,A
     oc = 111;
-    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->HL.bytes.low = z->getRegisters()->AF.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (HL),B
     oc = 112;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->BC.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),C
     oc = 113;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->BC.bytes.low;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),D
     oc = 114;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->DE.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),E
     oc = 115;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->DE.bytes.low;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),H
     oc = 116;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->HL.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),L
     oc = 117;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->HL.bytes.low;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // HALT
     oc = 118;
     i = { 4, 4, 0, INST{
             z->halt();
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (HL),A
     oc = 119;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->HL.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,B
     oc = 120;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,C
     oc = 121;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,D
     oc = 122;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,E
     oc = 123;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,H
     oc = 124;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.high; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,L
     oc = 125;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->HL.bytes.low; },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,(HL)
     oc = 126;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->HL.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,A
     oc = 127;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // ADD A,B
     oc = 128;
@@ -977,9 +1362,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,C
     oc = 129;
@@ -987,9 +1375,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,D
     oc = 130;
@@ -997,9 +1388,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,E
     oc = 131;
@@ -1007,9 +1401,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,H
     oc = 132;
@@ -1017,9 +1414,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,L
     oc = 133;
@@ -1027,9 +1427,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,(HL)
     oc = 134;
@@ -1037,9 +1440,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,A
     oc = 135;
@@ -1047,9 +1453,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,B
     oc = 136;
@@ -1057,9 +1466,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,C
     oc = 137;
@@ -1067,9 +1479,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,D
     oc = 138;
@@ -1077,9 +1492,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,E
     oc = 139;
@@ -1087,9 +1505,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,H
     oc = 140;
@@ -1097,9 +1518,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,L
     oc = 141;
@@ -1107,9 +1531,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->HL.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,(HL)
     oc = 142;
@@ -1117,9 +1544,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,A
     oc = 143;
@@ -1127,9 +1557,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB B
     oc = 144;
@@ -1137,9 +1570,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB C
     oc = 145;
@@ -1147,9 +1583,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB D
     oc = 146;
@@ -1157,9 +1596,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB E
     oc = 147;
@@ -1167,9 +1609,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB H
     oc = 148;
@@ -1177,9 +1622,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB L
     oc = 149;
@@ -1187,9 +1635,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB (HL)
     oc = 150;
@@ -1197,9 +1648,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->HL.word]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB A
     oc = 151;
@@ -1207,9 +1661,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,B
     oc = 152;
@@ -1217,9 +1674,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,C
     oc = 153;
@@ -1227,9 +1687,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,D
     oc = 154;
@@ -1237,9 +1700,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,E
     oc = 155;
@@ -1247,9 +1713,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,H
     oc = 156;
@@ -1257,9 +1726,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,L
     oc = 157;
@@ -1267,9 +1739,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,(HL)
     oc = 158;
@@ -1277,9 +1752,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->HL.word]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,A
     oc = 159;
@@ -1287,225 +1765,300 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND B
     oc = 160;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND C
     oc = 161;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND D
     oc = 162;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND E
     oc = 163;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND H
     oc = 164;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->HL.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND L
     oc = 165;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->HL.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND (HL)
     oc = 166;
     i = { 7, 7, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND A
     oc = 167;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR B
     oc = 168;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR C
     oc = 169;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR D
     oc = 170;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR E
     oc = 171;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR H
     oc = 172;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->HL.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR L
     oc = 173;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->HL.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR (HL)
     oc = 174;
     i = { 7, 7, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR A
     oc = 175;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR B
     oc = 176;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR C
     oc = 177;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR D
     oc = 178;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR E
     oc = 179;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR H
     oc = 180;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->HL.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR L
     oc = 181;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->HL.bytes.low, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR (HL)
     oc = 182;
     i = { 7, 7, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, (*m)[z->getRegisters()->HL.word], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR A
     oc = 183;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP B
     oc = 184;
@@ -1513,9 +2066,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP C
     oc = 185;
@@ -1523,9 +2079,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP D
     oc = 186;
@@ -1533,9 +2092,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP E
     oc = 187;
@@ -1543,9 +2105,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP H
     oc = 188;
@@ -1553,9 +2118,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP L
     oc = 189;
@@ -1563,9 +2131,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->HL.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP (HL)
     oc = 190;
@@ -1573,9 +2144,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->HL.word]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP A
     oc = 191;
@@ -1583,18 +2157,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NZ
     oc = 192;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NZ);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP BC
     oc = 193;
@@ -1602,9 +2182,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NZ,nn
     oc = 194;
@@ -1615,9 +2198,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP nn
     oc = 195;
@@ -1625,9 +2211,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->PC = nn;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NZ,nn
     oc = 196;
@@ -1635,9 +2224,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NZ, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH BC
     oc = 197;
@@ -1647,9 +2239,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->BC.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->BC.bytes.low;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,n
     oc = 198;
@@ -1657,9 +2252,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 00
     oc = 199;
@@ -1670,18 +2268,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x00;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET Z
     oc = 200;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::Z);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET
     oc = 201;
@@ -1691,9 +2295,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP++;
             r->PC |= ((*m)[r->SP]) << 8;
             r->SP++;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP Z,nn
     oc = 202;
@@ -1704,9 +2311,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0x00CB is prefix
 
@@ -1716,9 +2326,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::Z, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL nn
     oc = 205;
@@ -1730,9 +2343,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = (r->PC) & 0xFF;
             r->PC = nn;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,n
     oc = 206;
@@ -1740,9 +2356,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 08
     oc = 207;
@@ -1753,18 +2372,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x08;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NC
     oc = 208;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NC);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP DE
     oc = 209;
@@ -1772,9 +2397,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NC,nn
     oc = 210;
@@ -1785,9 +2413,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (n),A
     oc = 211;
@@ -1795,9 +2426,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NC,nn
     oc = 212;
@@ -1805,9 +2439,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NC, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH DE
     oc = 213;
@@ -1817,9 +2454,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->DE.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->DE.bytes.low;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB n
     oc = 214;
@@ -1827,9 +2467,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 10
     oc = 215;
@@ -1840,18 +2483,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x10;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET C
     oc = 216;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::C);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EXX
     oc = 217;
@@ -1866,9 +2515,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->HL.word;
             r->HL.word = r->HLx.word;
             r->HLx.word = tmp;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP C,nn
     oc = 218;
@@ -1879,9 +2531,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN A,(n)
     oc = 219;
@@ -1889,9 +2544,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL C,nn
     oc = 220;
@@ -1899,9 +2557,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::C, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xDD is prefix
 
@@ -1911,9 +2572,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 18
     oc = 223;
@@ -1924,18 +2588,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x18;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PO
     oc = 224;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PO);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP HL
     oc = 225;
@@ -1943,9 +2613,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PO,nn
     oc = 226;
@@ -1956,9 +2629,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX (SP),HL
     oc = 227;
@@ -1970,9 +2646,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->HL.bytes.high;
             r->HL.bytes.high = (*m)[(r->SP)+1];
             (*m)[(r->SP)+1] = tmp;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PO,nn
     oc = 228;
@@ -1980,9 +2659,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PO, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH HL
     oc = 229;
@@ -1992,18 +2674,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->HL.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->HL.bytes.low;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND n
     oc = 230;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, d[0], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 20
     oc = 231;
@@ -2014,18 +2702,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x20;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PE
     oc = 232;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PE);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP,(HL)
     oc = 233;
@@ -2033,9 +2727,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             //r->PC = (*m)[r->HL.word];
             r->PC = r->HL.word;     // wtf
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PE,nn
     oc = 234;
@@ -2046,9 +2743,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX DE,HL
     oc = 235;
@@ -2057,9 +2757,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->DE.word;
             r->DE.word = r->HL.word;
             r->HL.word = tmp;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PE,nn
     oc = 236;
@@ -2067,9 +2770,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PE, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xED is prefix
 
@@ -2078,9 +2784,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, d[0], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 28
     oc = 239;
@@ -2091,18 +2800,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x28;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET P
     oc = 240;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::P);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP AF
     oc = 241;
@@ -2110,9 +2825,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP P,nn
     oc = 242;
@@ -2123,9 +2841,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DI
     oc = 243;
@@ -2133,9 +2854,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL P,nn
     oc = 244;
@@ -2143,9 +2867,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::P, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH AF
     oc = 245;
@@ -2155,18 +2882,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->AF.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->AF.bytes.low.byte;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR n
     oc = 246;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, d[0], r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 30
     oc = 247;
@@ -2177,27 +2910,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x30;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET M
     oc = 248;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::M);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,HL
     oc = 249;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = r->HL.word;
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 6, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP M,nn
     oc = 250;
@@ -2208,9 +2950,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EI
     oc = 251;
@@ -2218,9 +2963,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
-        }
+        },
+        1, { MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 0, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL M,nn
     oc = 252;
@@ -2228,9 +2976,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::M, nn);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 4, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xFD is prefix
 
@@ -2240,9 +2991,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 3, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 38
     oc = 255;
@@ -2253,36 +3007,51 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x38;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 5, 3, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NOP
     oc = 256;
-    i = { 4, 4, 0, INST{ ; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD BC,nn
     oc = 257;
-    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (BC),A
     oc = 258;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->BC.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC BC
     oc = 259;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC B
     oc = 260;
@@ -2291,9 +3060,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x7F) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC B
     oc = 261;
@@ -2302,14 +3074,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x80) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,n
     oc = 262;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLCA
     oc = 263;
@@ -2319,9 +3097,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX AF, AF'
     oc = 264;
@@ -2330,9 +3111,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->AFx.word;
             r->AFx.word = r->AF.word;
             r->AF.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IX,BC
     oc = 265;
@@ -2341,26 +3125,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IX.word = add(r->IX.word, r->BC.word, r, ADD16);
             setUndocumentedFlags(r->IX.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(BC)
     oc = 266;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC BC
     oc = 267;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC C
     oc = 268;
@@ -2369,9 +3162,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x7F) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC C
     oc = 269;
@@ -2380,14 +3176,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x80) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,n
     oc = 270;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRCA
     oc = 271;
@@ -2397,9 +3199,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DJNZ d
     oc = 272;
@@ -2410,31 +3215,43 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD DE,nn
     oc = 273;
-    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (DE),A
     oc = 274;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->DE.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC DE
     oc = 275;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC D
     oc = 276;
@@ -2443,9 +3260,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x7F) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC D
     oc = 277;
@@ -2454,14 +3274,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x80) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,n
     oc = 278;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLA
     oc = 279;
@@ -2470,18 +3296,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rolc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR d
     oc = 280;
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IX,DE
     oc = 281;
@@ -2490,26 +3322,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IX.word = add(r->IX.word, r->DE.word, r, ADD16);
             setUndocumentedFlags(r->IX.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(DE)
     oc = 282;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC DE
     oc = 283;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC E
     oc = 284;
@@ -2518,9 +3359,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x7F) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC E
     oc = 285;
@@ -2529,14 +3373,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x80) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,n
     oc = 286;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRA
     oc = 287;
@@ -2545,9 +3395,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rorc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NZ,d
     oc = 288;
@@ -2557,14 +3410,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IXL,nn
     oc = 289;
-    i = { 14, 14, 2, INST{ z->getRegisters()->IX.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 14, 14, 2, INST{ z->getRegisters()->IX.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),IX
     oc = 290;
@@ -2572,18 +3431,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->IX.bytes.low;
             (*m)[nn+1] = z->getRegisters()->IX.bytes.high;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IX
     oc = 291;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IX.word = add<uint16_t>(r->IX.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IXH
     oc = 292;
@@ -2592,9 +3457,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IX.bytes.high == 0x7F) ? true : false;
             r->IX.bytes.high = add<uint8_t>(r->IX.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IXH
     oc = 293;
@@ -2603,19 +3471,28 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IX.bytes.high == 0x80) ? true : false;
             r->IX.bytes.high = add<uint8_t>(r->IX.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IXH,n
     oc = 294;
-    i = { 9, 9, 1, INST{ z->getRegisters()->IX.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 9, 9, 1, INST{ z->getRegisters()->IX.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // DAA
     oc = 295;
-    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // JR Z,d
     oc = 296;
@@ -2625,9 +3502,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IX,IX
     oc = 297;
@@ -2636,9 +3516,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IX.word = add(r->IX.word, r->IX.word, r, ADD16);
             setUndocumentedFlags(r->IX.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IX,(nn)
     oc = 298;
@@ -2646,18 +3529,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             uint16_t in = CREATE_WORD((*m)[nn], (*m)[nn+1]);
             z->getRegisters()->IX.word = in;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IX
     oc = 299;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IX.word = add<uint16_t>(r->IX.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IXL
     oc = 300;
@@ -2666,9 +3555,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IX.bytes.low == 0x7F) ? true : false;
             r->IX.bytes.low = add<uint8_t>(r->IX.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IXL
     oc = 301;
@@ -2677,14 +3569,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IX.bytes.low == 0x80) ? true : false;
             r->IX.bytes.low = add<uint8_t>(r->IX.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IXL,n
     oc = 302;
-    i = { 7, 7, 1, INST{ z->getRegisters()->IX.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->IX.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CPL
     oc = 303;
@@ -2693,9 +3591,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ~(r->AF.bytes.high);
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NC,d
     oc = 304;
@@ -2705,32 +3606,44 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,nn
     oc = 305;
-    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),A
     oc = 306;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC SP
     oc = 307;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC (IX+d)
     oc = 308;
@@ -2741,9 +3654,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, 1, r, INC8);
             (*m)[r->IX.word+((int8_t)(d[0]))] = byte;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC (IX+d)
     oc = 309;
@@ -2754,17 +3670,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, -1, r, DEC8);
             (*m)[r->IX.word+((int8_t)(d[0]))] = byte;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),n
     oc = 310;
     i = { 19, 19, 2, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = d[1];
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SCF
     oc = 311;
@@ -2772,9 +3694,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             z->getRegisters()->AF.bytes.low.CF = true;
             z->getRegisters()->AF.bytes.low.NF = false;
             z->getRegisters()->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR C,d
     oc = 312;
@@ -2784,9 +3709,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IX,SP
     oc = 313;
@@ -2795,27 +3723,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IX.word = add(r->IX.word, r->SP, r, ADD16);
             setUndocumentedFlags(r->IX.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(nn)
     oc = 314;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC SP
     oc = 315;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC A
     oc = 316;
@@ -2824,9 +3761,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC A
     oc = 317;
@@ -2835,14 +3775,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,n
     oc = 318;
-    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CCF
     oc = 319;
@@ -2852,374 +3798,569 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = prevCarry;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,B
     oc = 320;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ }};
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   };
+    (*instructions)[oc] = i;
 
     // LD B,C
     oc = 321;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,D
     oc = 322;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,E
     oc = 323;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,IXH
     oc = 324;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,IXL
     oc = 325;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,(IX+d)
     oc = 326;
     i = { 19, 19, 1, INST{
             z->getRegisters()->BC.bytes.high = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,A
     oc = 327;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,B
     oc = 328;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,C
     oc = 329;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,D
     oc = 330;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,E
     oc = 331;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,IXH
     oc = 332;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,IXL
     oc = 333;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,(IX+d)
     oc = 334;
     i = { 7, 7, 1, INST{
             z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,A
     oc = 335;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,B
     oc = 336;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,C
     oc = 337;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,D
     oc = 338;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,E
     oc = 339;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,IXH
     oc = 340;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,IXL
     oc = 341;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,(IX+d)
     oc = 342;
     i = { 19, 19, 1, INST{
             z->getRegisters()->DE.bytes.high = (*m)[z->getRegisters()->IX.word+((int8_t)(d[0]))];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,A
     oc = 343;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,B
     oc = 344;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,C
     oc = 345;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,D
     oc = 346;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,E
     oc = 347;
-    i = { 4, 4, 0, INST{; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,IXH
     oc = 348;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,IXL
     oc = 349;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,(IX+d)
     oc = 350;
     i = { 19, 19, 1, INST{
             z->getRegisters()->DE.bytes.low = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,A
     oc = 351;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,B
     oc = 352;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,C
     oc = 353;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,D
     oc = 354;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,E
     oc = 355;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,IXH
     oc = 356;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXH,IXL
     oc = 357;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,(IX+d)
     oc = 358;
     i = { 19, 19, 1, INST{
             z->getRegisters()->HL.bytes.high = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IXH,A
     oc = 359;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,B
     oc = 360;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,C
     oc = 361;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,D
     oc = 362;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,E
     oc = 363;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,H
     oc = 364;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->HL.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IXL,IXL
     oc = 365;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,(IX+d)
     oc = 366;
     i = { 19, 19, 1, INST{
             z->getRegisters()->HL.bytes.low = (*m)[z->getRegisters()->IX.word+((int8_t)(d[0]))];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IXL,A
     oc = 367;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (IX+d),B
     oc = 368;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->BC.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),C
     oc = 369;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->BC.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),D
     oc = 370;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->DE.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),E
     oc = 371;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->DE.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),H
     oc = 372;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->HL.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),L
     oc = 373;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->HL.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // HALT
     oc = 374;
     i = { 4, 4, 0, INST{
             z->halt();
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IX+d),A
     oc = 375;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,B
     oc = 376;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,C
     oc = 377;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,D
     oc = 378;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,E
     oc = 379;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,IXH
     oc = 380;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,IXL
     oc = 381;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,(IX+d)
     oc = 382;
     i = { 19, 19, 1, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,A
     oc = 383;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // ADD A,B
     oc = 384;
@@ -3227,9 +4368,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,C
     oc = 385;
@@ -3237,9 +4381,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,D
     oc = 386;
@@ -3247,9 +4394,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,E
     oc = 387;
@@ -3257,9 +4407,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,IXH
     oc = 388;
@@ -3267,9 +4420,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,IXL
     oc = 389;
@@ -3277,9 +4433,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,(IX+d)
     oc = 390;
@@ -3287,9 +4446,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->IX.word+((int8_t)d[0])], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,A
     oc = 391;
@@ -3297,9 +4459,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,B
     oc = 392;
@@ -3307,9 +4472,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,C
     oc = 393;
@@ -3317,9 +4485,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,D
     oc = 394;
@@ -3327,9 +4498,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,E
     oc = 395;
@@ -3337,9 +4511,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,IXH
     oc = 396;
@@ -3347,9 +4524,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,IXL
     oc = 397;
@@ -3357,9 +4537,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,(IX+d)
     oc = 398;
@@ -3367,9 +4550,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->IX.word+((int8_t)d[0])], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,A
     oc = 399;
@@ -3377,9 +4563,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB B
     oc = 400;
@@ -3387,9 +4576,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB C
     oc = 401;
@@ -3397,9 +4589,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB D
     oc = 402;
@@ -3407,9 +4602,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB E
     oc = 403;
@@ -3417,9 +4615,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB IXH
     oc = 404;
@@ -3427,9 +4628,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB IXL
     oc = 405;
@@ -3437,9 +4641,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB (IX+d)
     oc = 406;
@@ -3447,9 +4654,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IX.word+((int8_t)d[0])]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB A
     oc = 407;
@@ -3457,9 +4667,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,B
     oc = 408;
@@ -3467,9 +4680,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,C
     oc = 409;
@@ -3477,9 +4693,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,D
     oc = 410;
@@ -3487,9 +4706,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,E
     oc = 411;
@@ -3497,9 +4719,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,IXH
     oc = 412;
@@ -3507,9 +4732,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,IXL
     oc = 413;
@@ -3517,9 +4745,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,(IX+d)
     oc = 414;
@@ -3527,9 +4758,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IX.word+((int8_t)d[0])]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,A
     oc = 415;
@@ -3537,225 +4771,300 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND B
     oc = 416;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND C
     oc = 417;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND D
     oc = 418;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND E
     oc = 419;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND IXH
     oc = 420;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IX.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND IXL
     oc = 421;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IX.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND (IX+d)
     oc = 422;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, (*m)[z->getRegisters()->IX.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND A
     oc = 423;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR B
     oc = 424;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR C
     oc = 425;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR D
     oc = 426;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR E
     oc = 427;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR IXH
     oc = 428;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IX.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR IXL
     oc = 429;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IX.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR (IX+d)
     oc = 430;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, (*m)[z->getRegisters()->IX.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR A
     oc = 431;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR B
     oc = 432;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR C
     oc = 433;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR D
     oc = 434;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR E
     oc = 435;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR IXH
     oc = 436;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IX.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR IXL
     oc = 437;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IX.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR (IX+d)
     oc = 438;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, (*m)[z->getRegisters()->IX.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR A
     oc = 439;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP B
     oc = 440;
@@ -3763,9 +5072,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP C
     oc = 441;
@@ -3773,9 +5085,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP D
     oc = 442;
@@ -3783,9 +5098,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP E
     oc = 443;
@@ -3793,9 +5111,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP IXH
     oc = 444;
@@ -3803,9 +5124,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP IXL
     oc = 445;
@@ -3813,9 +5137,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP (IX+d)
     oc = 446;
@@ -3823,9 +5150,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IX.word+((int8_t)d[0])]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP A
     oc = 447;
@@ -3833,18 +5163,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NZ
     oc = 448;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NZ);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP BC
     oc = 449;
@@ -3852,9 +5188,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NZ,nn
     oc = 450;
@@ -3865,9 +5204,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP nn
     oc = 451;
@@ -3875,9 +5217,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->PC = nn;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NZ,nn
     oc = 452;
@@ -3885,9 +5230,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NZ, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH BC
     oc = 453;
@@ -3897,9 +5245,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->BC.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->BC.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,n
     oc = 454;
@@ -3907,9 +5258,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 00
     oc = 455;
@@ -3920,18 +5274,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x00;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET Z
     oc = 456;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::Z);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET
     oc = 457;
@@ -3941,9 +5301,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP++;
             r->PC |= ((*m)[r->SP]) << 8;
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP Z,nn
     oc = 458;
@@ -3954,9 +5317,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0x00CB is prefix
 
@@ -3966,9 +5332,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::Z, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL nn
     oc = 461;
@@ -3980,9 +5349,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = (r->PC) & 0xFF;
             r->PC = nn;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,n
     oc = 462;
@@ -3990,9 +5362,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 08
     oc = 463;
@@ -4003,18 +5378,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x08;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NC
     oc = 464;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NC);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP DE
     oc = 465;
@@ -4022,9 +5403,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NC,nn
     oc = 466;
@@ -4035,9 +5419,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (n),A
     oc = 467;
@@ -4045,9 +5432,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NC,nn
     oc = 468;
@@ -4055,9 +5445,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NC, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH DE
     oc = 469;
@@ -4067,9 +5460,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->DE.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->DE.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB n
     oc = 470;
@@ -4077,9 +5473,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 10
     oc = 471;
@@ -4090,18 +5489,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x10;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET C
     oc = 472;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::C);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EXX
     oc = 473;
@@ -4116,9 +5521,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->HL.word;
             r->HL.word = r->HLx.word;
             r->HLx.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP C,nn
     oc = 474;
@@ -4129,9 +5537,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN A,(n)
     oc = 475;
@@ -4139,9 +5550,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL C,nn
     oc = 476;
@@ -4149,9 +5563,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::C, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xDD is prefix
 
@@ -4161,9 +5578,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 18
     oc = 479;
@@ -4174,18 +5594,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x18;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PO
     oc = 480;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PO);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP IX
     oc = 481;
@@ -4193,9 +5619,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->IX.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PO,nn
     oc = 482;
@@ -4206,9 +5635,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX (SP),IX
     oc = 483;
@@ -4220,9 +5652,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->IX.bytes.high;
             r->IX.bytes.high = (*m)[(r->SP)+1];
             (*m)[(r->SP)+1] = tmp;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 5, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PO,nn
     oc = 484;
@@ -4230,9 +5665,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PO, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH IX
     oc = 485;
@@ -4242,18 +5680,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->IX.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->IX.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND n
     oc = 486;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 20
     oc = 487;
@@ -4264,27 +5708,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x20;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PE
     oc = 488;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PE);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP,(IX)
     oc = 489;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->PC = (*m)[r->IX.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PE,nn
     oc = 490;
@@ -4295,9 +5748,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX DE,HL
     oc = 491;
@@ -4306,9 +5762,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->DE.word;
             r->DE.word = r->HL.word;
             r->HL.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PE,nn
     oc = 492;
@@ -4316,9 +5775,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PE, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xED is prefix
 
@@ -4327,9 +5789,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 28
     oc = 495;
@@ -4340,18 +5805,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x28;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET P
     oc = 496;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::P);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP AF
     oc = 497;
@@ -4359,9 +5830,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP P,nn
     oc = 498;
@@ -4372,9 +5846,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DI
     oc = 499;
@@ -4382,9 +5859,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL P,nn
     oc = 500;
@@ -4392,9 +5872,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::P, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH AF
     oc = 501;
@@ -4404,18 +5887,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->AF.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->AF.bytes.low.byte;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR n
     oc = 502;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 30
     oc = 503;
@@ -4426,27 +5915,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x30;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET M
     oc = 504;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::M);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,IX
     oc = 505;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = r->IX.word;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP M,nn
     oc = 506;
@@ -4457,9 +5955,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EI
     oc = 507;
@@ -4467,9 +5968,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL M,nn
     oc = 508;
@@ -4477,9 +5981,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::M, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xFD is prefix
 
@@ -4489,9 +5996,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 38
     oc = 511;
@@ -4502,36 +6012,51 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x38;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NOP
     oc = 512;
-    i = { 4, 4, 0, INST{ ; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD BC,nn
     oc = 513;
-    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (BC),A
     oc = 514;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->BC.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC BC
     oc = 515;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC B
     oc = 516;
@@ -4540,9 +6065,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x7F) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC B
     oc = 517;
@@ -4551,14 +6079,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x80) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,n
     oc = 518;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLCA
     oc = 519;
@@ -4568,9 +6102,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX AF, AF'
     oc = 520;
@@ -4579,9 +6116,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->AFx.word;
             r->AFx.word = r->AF.word;
             r->AF.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IY,BC
     oc = 521;
@@ -4590,26 +6130,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IY.word = add(r->IY.word, r->BC.word, r, ADD16);
             setUndocumentedFlags(r->IY.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(BC)
     oc = 522;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC BC
     oc = 523;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC C
     oc = 524;
@@ -4618,9 +6167,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x7F) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC C
     oc = 525;
@@ -4629,14 +6181,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x80) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,n
     oc = 526;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRCA
     oc = 527;
@@ -4646,9 +6204,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DJNZ d
     oc = 528;
@@ -4659,31 +6220,43 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD DE,nn
     oc = 529;
-    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (DE),A
     oc = 530;
     i = { 7, 7, 0, INST{
             (*m)[z->getRegisters()->DE.word] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC DE
     oc = 531;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC D
     oc = 532;
@@ -4692,9 +6265,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x7F) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC D
     oc = 533;
@@ -4703,14 +6279,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x80) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,n
     oc = 534;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RLA
     oc = 535;
@@ -4719,18 +6301,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rolc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR d
     oc = 536;
     i = { 7, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IY,DE
     oc = 537;
@@ -4739,26 +6327,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IY.word = add(r->IY.word, r->DE.word, r, ADD16);
             setUndocumentedFlags(r->IY.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(DE)
     oc = 538;
     i = { 7, 7, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC DE
     oc = 539;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC E
     oc = 540;
@@ -4767,9 +6364,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x7F) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC E
     oc = 541;
@@ -4778,14 +6378,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x80) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,n
     oc = 542;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // RRA
     oc = 543;
@@ -4794,9 +6400,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = rorc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NZ,d
     oc = 544;
@@ -4806,14 +6415,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IYL,nn
     oc = 545;
-    i = { 14, 14, 2, INST{ z->getRegisters()->IY.word = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 14, 14, 2, INST{ z->getRegisters()->IY.word = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),IY
     oc = 546;
@@ -4821,18 +6436,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->IY.bytes.low;
             (*m)[nn+1] = z->getRegisters()->IY.bytes.high;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IY
     oc = 547;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IY.word = add<uint16_t>(r->IY.word, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IYH
     oc = 548;
@@ -4841,9 +6462,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IY.bytes.high == 0x7F) ? true : false;
             r->IY.bytes.high = add<uint8_t>(r->IY.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IYH
     oc = 549;
@@ -4852,19 +6476,28 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IY.bytes.high == 0x80) ? true : false;
             r->IY.bytes.high = add<uint8_t>(r->IY.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IYH,n
     oc = 550;
-    i = { 9, 9, 1, INST{ z->getRegisters()->IY.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 9, 9, 1, INST{ z->getRegisters()->IY.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // DAA
     oc = 551;
-    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // JR Z,d
     oc = 552;
@@ -4874,9 +6507,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IY,IY
     oc = 553;
@@ -4885,9 +6521,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IY.word = add(r->IY.word, r->IY.word, r, ADD16);
             setUndocumentedFlags(r->IY.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IY,(nn)
     oc = 554;
@@ -4895,18 +6534,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             uint16_t in = CREATE_WORD((*m)[nn], (*m)[nn+1]);
             z->getRegisters()->IY.word = in;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IY
     oc = 555;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IY.word = add<uint16_t>(r->IY.word, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC IYL
     oc = 556;
@@ -4915,9 +6560,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IY.bytes.low == 0x7F) ? true : false;
             r->IY.bytes.low = add<uint8_t>(r->IY.bytes.low, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC IYL
     oc = 557;
@@ -4926,14 +6574,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->IY.bytes.low == 0x80) ? true : false;
             r->IY.bytes.low = add<uint8_t>(r->IY.bytes.low, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IYL,n
     oc = 558;
-    i = { 7, 7, 1, INST{ z->getRegisters()->IY.bytes.low = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->IY.bytes.low = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CPL
     oc = 559;
@@ -4942,9 +6596,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = ~(r->AF.bytes.high);
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR NC,d
     oc = 560;
@@ -4954,32 +6611,44 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,nn
     oc = 561;
-    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); } };
-    instructions[oc] = i;
+    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (nn),A
     oc = 562;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC SP
     oc = 563;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, 1, r, INC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC (IY+d)
     oc = 564;
@@ -4990,9 +6659,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, 1, r, INC8);
             (*m)[r->IY.word+((int8_t)(d[0]))] = byte;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC (IY+d)
     oc = 565;
@@ -5003,17 +6675,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             byte = add<uint8_t>(byte, -1, r, DEC8);
             (*m)[r->IY.word+((int8_t)(d[0]))] = byte;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),n
     oc = 566;
     i = { 19, 19, 2, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = d[1];
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SCF
     oc = 567;
@@ -5021,9 +6699,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             z->getRegisters()->AF.bytes.low.CF = true;
             z->getRegisters()->AF.bytes.low.NF = false;
             z->getRegisters()->AF.bytes.low.HF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JR C,d
     oc = 568;
@@ -5033,9 +6714,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC += (int8_t) d[0];
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD IY,SP
     oc = 569;
@@ -5044,27 +6728,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->IY.word = add(r->IY.word, r->SP, r, ADD16);
             setUndocumentedFlags(r->IY.word, r);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,(nn)
     oc = 570;
     i = { 13, 13, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC SP
     oc = 571;
     i = { 6, 6, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INC A
     oc = 572;
@@ -5073,9 +6766,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DEC A
     oc = 573;
@@ -5084,14 +6780,20 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
             r->AF.bytes.low.NF = true;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,n
     oc = 574;
-    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; } };
-    instructions[oc] = i;
+    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // CCF
     oc = 575;
@@ -5101,374 +6803,569 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = prevCarry;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,B
     oc = 576;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ }};
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   };
+    (*instructions)[oc] = i;
 
     // LD B,C
     oc = 577;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,D
     oc = 578;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,E
     oc = 579;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,IYH
     oc = 580;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,IYL
     oc = 581;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD B,(IY+d)
     oc = 582;
     i = { 19, 19, 1, INST{
             z->getRegisters()->BC.bytes.high = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD B,A
     oc = 583;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,B
     oc = 584;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,C
     oc = 585;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,D
     oc = 586;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,E
     oc = 587;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,IYH
     oc = 588;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,IYL
     oc = 589;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD C,(IY+d)
     oc = 590;
     i = { 7, 7, 1, INST{
             z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD C,A
     oc = 591;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,B
     oc = 592;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,C
     oc = 593;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,D
     oc = 594;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,E
     oc = 595;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,IYH
     oc = 596;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,IYL
     oc = 597;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD D,(IY+d)
     oc = 598;
     i = { 19, 19, 1, INST{
             z->getRegisters()->DE.bytes.high = (*m)[z->getRegisters()->IY.word+((int8_t)(d[0]))];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD D,A
     oc = 599;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,B
     oc = 600;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,C
     oc = 601;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,D
     oc = 602;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,E
     oc = 603;
-    i = { 4, 4, 0, INST{; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,IYH
     oc = 604;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,IYL
     oc = 605;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD E,(IY+d)
     oc = 606;
     i = { 19, 19, 1, INST{
             z->getRegisters()->DE.bytes.low = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD E,A
     oc = 607;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,B
     oc = 608;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,C
     oc = 609;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,D
     oc = 610;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,E
     oc = 611;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,IYH
     oc = 612;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYH,IYL
     oc = 613;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD H,(IY+d)
     oc = 614;
     i = { 19, 19, 1, INST{
             z->getRegisters()->HL.bytes.high = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IYH,A
     oc = 615;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,B
     oc = 616;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,C
     oc = 617;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,D
     oc = 618;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,E
     oc = 619;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,H
     oc = 620;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->HL.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->HL.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD IYL,IYL
     oc = 621;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD L,(IY+d)
     oc = 622;
     i = { 19, 19, 1, INST{
             z->getRegisters()->HL.bytes.low = (*m)[z->getRegisters()->IY.word+((int8_t)(d[0]))];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD IYL,A
     oc = 623;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->AF.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->AF.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD (IY+d),B
     oc = 624;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->BC.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),C
     oc = 625;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->BC.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),D
     oc = 626;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->DE.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),E
     oc = 627;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->DE.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),H
     oc = 628;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->HL.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),L
     oc = 629;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->HL.bytes.low;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // HALT
     oc = 630;
     i = { 4, 4, 0, INST{
             z->halt();
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (IY+d),A
     oc = 631;
     i = { 19, 19, 1, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = z->getRegisters()->AF.bytes.high;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,B
     oc = 632;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,C
     oc = 633;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,D
     oc = 634;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,E
     oc = 635;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,IYH
     oc = 636;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.high; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.high; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,IYL
     oc = 637;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.low; } };
-    instructions[oc] = i;
+    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.low; },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // LD A,(IY+d)
     oc = 638;
     i = { 19, 19, 1, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,A
     oc = 639;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ } };
-    instructions[oc] = i;
+    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+    };
+    (*instructions)[oc] = i;
 
     // ADD A,B
     oc = 640;
@@ -5476,9 +7373,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,C
     oc = 641;
@@ -5486,9 +7386,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,D
     oc = 642;
@@ -5496,9 +7399,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,E
     oc = 643;
@@ -5506,9 +7412,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,IYH
     oc = 644;
@@ -5516,9 +7425,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,IYL
     oc = 645;
@@ -5526,9 +7438,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,(IY+d)
     oc = 646;
@@ -5536,9 +7451,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->IY.word+((int8_t)d[0])], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,A
     oc = 647;
@@ -5546,9 +7464,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,B
     oc = 648;
@@ -5556,9 +7477,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,C
     oc = 649;
@@ -5566,9 +7490,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,D
     oc = 650;
@@ -5576,9 +7503,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,E
     oc = 651;
@@ -5586,9 +7516,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,IYH
     oc = 652;
@@ -5596,9 +7529,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,IYL
     oc = 653;
@@ -5606,9 +7542,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,(IY+d)
     oc = 654;
@@ -5616,9 +7555,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, (*m)[z->getRegisters()->IY.word+((int8_t)d[0])], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,A
     oc = 655;
@@ -5626,9 +7568,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB B
     oc = 656;
@@ -5636,9 +7581,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB C
     oc = 657;
@@ -5646,9 +7594,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB D
     oc = 658;
@@ -5656,9 +7607,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB E
     oc = 659;
@@ -5666,9 +7620,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB IYH
     oc = 660;
@@ -5676,9 +7633,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB IYL
     oc = 661;
@@ -5686,9 +7646,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB (IY+d)
     oc = 662;
@@ -5696,9 +7659,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IY.word+((int8_t)d[0])]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB A
     oc = 663;
@@ -5706,9 +7672,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,B
     oc = 664;
@@ -5716,9 +7685,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,C
     oc = 665;
@@ -5726,9 +7698,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,D
     oc = 666;
@@ -5736,9 +7711,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,E
     oc = 667;
@@ -5746,9 +7724,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,IYH
     oc = 668;
@@ -5756,9 +7737,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,IYL
     oc = 669;
@@ -5766,9 +7750,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,(IY+d)
     oc = 670;
@@ -5776,9 +7763,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IY.word+((int8_t)d[0])]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC A,A
     oc = 671;
@@ -5786,225 +7776,300 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND B
     oc = 672;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND C
     oc = 673;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND D
     oc = 674;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND E
     oc = 675;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND IYH
     oc = 676;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IY.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND IYL
     oc = 677;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IY.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND (IY+d)
     oc = 678;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, (*m)[z->getRegisters()->IY.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND A
     oc = 679;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR B
     oc = 680;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR C
     oc = 681;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR D
     oc = 682;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR E
     oc = 683;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR IYH
     oc = 684;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IY.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR IYL
     oc = 685;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IY.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR (IY+d)
     oc = 686;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, (*m)[z->getRegisters()->IY.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // XOR A
     oc = 687;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR B
     oc = 688;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR C
     oc = 689;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR D
     oc = 690;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR E
     oc = 691;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR IYH
     oc = 692;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IY.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR IYL
     oc = 693;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IY.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR (IY+d)
     oc = 694;
     i = { 19, 19, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, (*m)[z->getRegisters()->IY.word+((int8_t)d[0])], r);
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR A
     oc = 695;
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP B
     oc = 696;
@@ -6012,9 +8077,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP C
     oc = 697;
@@ -6022,9 +8090,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP D
     oc = 698;
@@ -6032,9 +8103,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP E
     oc = 699;
@@ -6042,9 +8116,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP IYH
     oc = 700;
@@ -6052,9 +8129,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP IYL
     oc = 701;
@@ -6062,9 +8142,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP (IY+d)
     oc = 702;
@@ -6072,9 +8155,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -((*m)[z->getRegisters()->IY.word+((int8_t)d[0])]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CP A
     oc = 703;
@@ -6082,18 +8168,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NZ
     oc = 704;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NZ);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP BC
     oc = 705;
@@ -6101,9 +8193,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NZ,nn
     oc = 706;
@@ -6114,9 +8209,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP nn
     oc = 707;
@@ -6124,9 +8222,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->PC = nn;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NZ,nn
     oc = 708;
@@ -6134,9 +8235,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NZ, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH BC
     oc = 709;
@@ -6146,9 +8250,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->BC.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->BC.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADD A,n
     oc = 710;
@@ -6156,9 +8263,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 00
     oc = 711;
@@ -6169,18 +8279,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x00;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET Z
     oc = 712;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::Z);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET
     oc = 713;
@@ -6190,9 +8306,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP++;
             r->PC |= ((*m)[r->SP]) << 8;
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP Z,nn
     oc = 714;
@@ -6203,9 +8322,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0x00CB is prefix
 
@@ -6215,9 +8337,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::Z, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL nn
     oc = 717;
@@ -6229,9 +8354,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = (r->PC) & 0xFF;
             r->PC = nn;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC A,n
     oc = 718;
@@ -6239,9 +8367,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 08
     oc = 719;
@@ -6252,18 +8383,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x08;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET NC
     oc = 720;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NC);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP DE
     oc = 721;
@@ -6271,9 +8408,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP NC,nn
     oc = 722;
@@ -6284,9 +8424,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (n),A
     oc = 723;
@@ -6294,9 +8437,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL NC,nn
     oc = 724;
@@ -6304,9 +8450,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NC, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH DE
     oc = 725;
@@ -6316,9 +8465,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->DE.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->DE.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SUB n
     oc = 726;
@@ -6326,9 +8478,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 10
     oc = 727;
@@ -6339,18 +8494,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x10;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET C
     oc = 728;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::C);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EXX
     oc = 729;
@@ -6365,9 +8526,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->HL.word;
             r->HL.word = r->HLx.word;
             r->HLx.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP C,nn
     oc = 730;
@@ -6378,9 +8542,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN A,(n)
     oc = 731;
@@ -6388,9 +8555,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL C,nn
     oc = 732;
@@ -6398,9 +8568,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::C, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xFD is prefix
 
@@ -6410,9 +8583,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 18
     oc = 735;
@@ -6423,18 +8599,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x18;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PO
     oc = 736;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PO);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP IY
     oc = 737;
@@ -6442,9 +8624,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->IY.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PO,nn
     oc = 738;
@@ -6455,9 +8640,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX (SP),IY
     oc = 739;
@@ -6469,9 +8657,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             tmp = r->IY.bytes.high;
             r->IY.bytes.high = (*m)[(r->SP)+1];
             (*m)[(r->SP)+1] = tmp;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 5, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PO,nn
     oc = 740;
@@ -6479,9 +8670,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PO, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH IY
     oc = 741;
@@ -6491,18 +8685,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->IY.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->IY.bytes.low;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // AND n
     oc = 742;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 20
     oc = 743;
@@ -6513,27 +8713,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x20;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET PE
     oc = 744;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PE);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP,(IY)
     oc = 745;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->PC = (*m)[r->IY.word];
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP PE,nn
     oc = 746;
@@ -6544,9 +8753,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EX DE,HL
     oc = 747;
@@ -6555,9 +8767,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t tmp = r->DE.word;
             r->DE.word = r->HL.word;
             r->HL.word = tmp;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL PE,nn
     oc = 748;
@@ -6565,9 +8780,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PE, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xED is prefix
 
@@ -6576,9 +8794,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 28
     oc = 751;
@@ -6589,18 +8810,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x28;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET P
     oc = 752;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::P);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // POP AF
     oc = 753;
@@ -6608,9 +8835,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->AF.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP P,nn
     oc = 754;
@@ -6621,9 +8851,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // DI
     oc = 755;
@@ -6631,9 +8864,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL P,nn
     oc = 756;
@@ -6641,9 +8877,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::P, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // PUSH AF
     oc = 757;
@@ -6653,18 +8892,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             (*m)[r->SP] = r->AF.bytes.high;
             r->SP--;
             (*m)[r->SP] = r->AF.bytes.low.byte;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OR n
     oc = 758;
     i = { 7, 7, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, d[0], r);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 30
     oc = 759;
@@ -6675,27 +8920,36 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x30;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RET M
     oc = 760;
     i = { 5, 11, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::M);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,IY
     oc = 761;
     i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = r->IY.word;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 6, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // JP M,nn
     oc = 762;
@@ -6706,9 +8960,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC = nn;
             }
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // EI
     oc = 763;
@@ -6716,9 +8973,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CALL M,nn
     oc = 764;
@@ -6726,9 +8986,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::M, nn);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xFD is prefix
 
@@ -6738,9 +9001,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RST 38
     oc = 767;
@@ -6751,9 +9017,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP--;
             (*m)[r->SP] = r->PC & 0xFF;
             r->PC = 0 | 0x38;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* 0xED00 - 0xED3F are NOPs */
 
@@ -6768,9 +9037,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),B
     oc = 833;
@@ -6778,9 +9050,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->BC.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->BC.bytes.high);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC HL,BC
     oc = 834;
@@ -6788,9 +9063,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, -(r->BC.word), r, SUB16, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (nn),BC
     oc = 835;
@@ -6798,9 +9076,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->BC.bytes.low;
             (*m)[nn+1] = z->getRegisters()->BC.bytes.high;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 836;
@@ -6812,9 +9093,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETN
     oc = 837;
@@ -6826,26 +9110,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 0
     oc = 838;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(0);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD I,A
     oc = 839;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IR.bytes.high = r->AF.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN C,(C)
     oc = 840;
@@ -6858,9 +9151,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),C
     oc = 841;
@@ -6868,9 +9164,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->BC.bytes.low;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->BC.bytes.low);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC HL,BC
     oc = 842;
@@ -6878,9 +9177,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, r->BC.word, r, ADD16, false, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD BC,(nn)
     oc = 843;
@@ -6888,9 +9190,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->BC.bytes.low = (*m)[nn];
             z->getRegisters()->BC.bytes.high = (*m)[nn+1];
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 844;
@@ -6902,9 +9207,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETI
     oc = 845;
@@ -6917,26 +9225,35 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 0
     oc = 846;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(0);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD R,A
     oc = 847;
     i = { 9, 9, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IR.bytes.low = r->AF.bytes.high;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN D,(C)
     oc = 848;
@@ -6949,9 +9266,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),D
     oc = 849;
@@ -6959,9 +9279,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->DE.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->DE.bytes.high);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC HL,DE
     oc = 850;
@@ -6969,9 +9292,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, -(r->DE.word), r, SUB16, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (nn),DE
     oc = 851;
@@ -6979,9 +9305,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->DE.bytes.low;
             (*m)[nn+1] = z->getRegisters()->DE.bytes.high;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 852;
@@ -6993,9 +9322,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETN
     oc = 853;
@@ -7007,17 +9339,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 1
     oc = 854;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(1);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,I
     oc = 855;
@@ -7029,9 +9367,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = z->getIFF2();
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN E,(C)
     oc = 856;
@@ -7044,9 +9385,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),E
     oc = 857;
@@ -7054,9 +9398,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->DE.bytes.low;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->DE.bytes.low);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC HL,DE
     oc = 858;
@@ -7064,9 +9411,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, r->DE.word, r, ADD16, false, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD DE,(nn)
     oc = 859;
@@ -7074,9 +9424,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->DE.bytes.low = (*m)[nn];
             z->getRegisters()->DE.bytes.high = (*m)[nn+1];
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 860;
@@ -7088,9 +9441,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETI
     oc = 861;
@@ -7103,17 +9459,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 2
     oc = 862;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(2);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD A,R
     oc = 863;
@@ -7125,9 +9487,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = z->getIFF2();
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN H,(C)
     oc = 864;
@@ -7140,9 +9505,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),H
     oc = 865;
@@ -7150,9 +9518,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->HL.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->HL.bytes.high);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC HL,HL
     oc = 866;
@@ -7160,9 +9531,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, -(r->HL.word), r, SUB16, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (nn),HL
     oc = 867;
@@ -7170,9 +9544,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->HL.bytes.low;
             (*m)[nn+1] = z->getRegisters()->HL.bytes.high;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 868;
@@ -7184,9 +9561,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETN
     oc = 869;
@@ -7198,17 +9578,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 0
     oc = 870;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(0);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRD
     oc = 871;
@@ -7227,9 +9613,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN L,(C)
     oc = 872;
@@ -7242,9 +9631,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),L
     oc = 873;
@@ -7252,9 +9644,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->HL.bytes.low;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->HL.bytes.low);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC HL,HL
     oc = 874;
@@ -7262,9 +9657,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, r->HL.word, r, ADD16, false, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD HL,(nn)
     oc = 875;
@@ -7272,9 +9670,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->HL.bytes.low = (*m)[nn];
             z->getRegisters()->HL.bytes.high = (*m)[nn+1];
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 876;
@@ -7286,9 +9687,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETI
     oc = 877;
@@ -7301,17 +9705,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 0
     oc = 878;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(2);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLD
     oc = 879;
@@ -7330,9 +9740,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 4, 3, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IN (C)
     oc = 880;
@@ -7344,9 +9757,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(z->getIoPorts()->readPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)));
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),0
     oc = 881;
@@ -7354,9 +9770,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[r->BC.bytes.low] = 0;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), 0);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SBC HL,SP
     oc = 882;
@@ -7364,9 +9783,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, -(r->SP), r, SUB16, false, true);
             r->AF.bytes.low.NF = 1;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD (nn),SP
     oc = 883;
@@ -7374,9 +9796,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = (uint8_t) (z->getRegisters()->SP & 0xF);
             (*m)[nn+1] = (uint8_t) (z->getRegisters()->SP >> 8);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 884;
@@ -7388,9 +9813,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETN
     oc = 885;
@@ -7402,17 +9830,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 1
     oc = 886;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(1);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xED77 is NOP
 
@@ -7427,9 +9861,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUT (C),A
     oc = 889;
@@ -7437,9 +9874,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(r->BC.bytes.low, r->BC.bytes.high), r->AF.bytes.high);
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // ADC HL,SP
     oc = 890;
@@ -7447,9 +9887,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             r->HL.word = add<uint16_t>(r->HL.word, r->SP, r, ADD16, false, true);
             r->AF.bytes.low.NF = 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LD SP,(nn)
     oc = 891;
@@ -7459,9 +9902,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->SP = 0;
             r->SP |= (*m)[nn];
             r->SP |= ((uint16_t)((*m)[nn+1])) << 8;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 3, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // NEG
     oc = 892;
@@ -7473,9 +9919,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.high = add<uint8_t>(0, -(r->AF.bytes.high), r, NEG8);
             r->AF.bytes.low.NF = true;
 
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RETI
     oc = 893;
@@ -7487,17 +9936,23 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->PC |= (*m)[r->SP] << 8;
             r->SP++;
             z->setIFF1(z->getIFF2());
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IM 2
     oc = 894;
     i = { 8, 8, 0, INST{
             z->setInterruptMode(2);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // 0xED7F - 0xED9F are NOPs
 
@@ -7512,9 +9967,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = r->BC.word != 0;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CPI
     oc = 929;
@@ -7525,9 +9983,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
             r->AF.bytes.low.PF = r->BC.word != 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INI
     oc = 930;
@@ -7539,9 +10000,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUTI
     oc = 931;
@@ -7553,9 +10017,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 4, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LDD
     oc = 932;
@@ -7568,9 +10035,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = r->BC.word != 0;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* 0xEDA5 - 0xEDA7 are NOPs */
 
@@ -7583,9 +10053,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
             r->AF.bytes.low.PF = r->BC.word != 0;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // IND
     oc = 937;
@@ -7597,9 +10070,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OUTD
     oc = 938;
@@ -7611,9 +10087,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
             r->AF.bytes.low.NF = true;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // LDIR
     oc = 944;
@@ -7630,9 +10109,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CPIR
     oc = 945;
@@ -7647,9 +10129,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INIR
     oc = 946;
@@ -7665,9 +10150,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::MWR, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 4, 3, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OTIR
     oc = 947;
@@ -7683,9 +10171,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 4, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* 0xEDB4 - 0xEDB7 are NOPs */
 
@@ -7704,9 +10195,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // CPDR
     oc = 953;
@@ -7721,9 +10215,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // INDR
     oc = 954;
@@ -7739,9 +10236,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::IOR, MachineCycleType::MWR, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 4, 3, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // OTDR
     oc = 955;
@@ -7757,9 +10257,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             {
                 r->PC -= 2;
             }
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::NON, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 5, 3, 4, 5, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* 0xEDBC - 0xEDFF are NOPs */
 
@@ -7774,9 +10277,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC C
     oc = 1025;
@@ -7789,9 +10295,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC D
     oc = 1026;
@@ -7804,9 +10313,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC E
     oc = 1027;
@@ -7819,9 +10331,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC H
     oc = 1028;
@@ -7834,9 +10349,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC L
     oc = 1029;
@@ -7849,9 +10367,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (HL)
     oc = 1030;
@@ -7866,9 +10387,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->HL.word] = hlMem;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC A
     oc = 1031;
@@ -7881,9 +10405,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC B
     oc = 1032;
@@ -7896,9 +10423,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC C
     oc = 1033;
@@ -7911,9 +10441,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC D
     oc = 1034;
@@ -7926,9 +10459,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC E
     oc = 1035;
@@ -7941,9 +10477,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC H
     oc = 1036;
@@ -7956,9 +10495,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC L
     oc = 1037;
@@ -7971,9 +10513,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (HL)
     oc = 1038;
@@ -7988,9 +10533,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->HL.word] = hlMem;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC A
     oc = 1039;
@@ -8003,9 +10551,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL B
     oc = 1040;
@@ -8017,9 +10568,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL C
     oc = 1041;
@@ -8031,9 +10585,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL D
     oc = 1042;
@@ -8045,9 +10602,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL E
     oc = 1043;
@@ -8059,9 +10619,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL H
     oc = 1044;
@@ -8073,9 +10636,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL L
     oc = 1045;
@@ -8087,9 +10653,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (HL)
     oc = 1046;
@@ -8103,9 +10672,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->HL.word] = hlMem;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL A
     oc = 1047;
@@ -8117,9 +10689,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR B
     oc = 1048;
@@ -8131,9 +10706,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR C
     oc = 1049;
@@ -8145,9 +10723,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->BC.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR D
     oc = 1050;
@@ -8159,9 +10740,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR E
     oc = 1051;
@@ -8173,9 +10757,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->DE.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR H
     oc = 1052;
@@ -8187,9 +10774,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR L
     oc = 1053;
@@ -8201,9 +10791,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->HL.bytes.low);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (HL)
     oc = 1054;
@@ -8217,9 +10810,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->HL.word] = hlMem;
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR A
     oc = 1055;
@@ -8231,297 +10827,396 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.NF = false;
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(r->AF.bytes.high);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA B
     oc = 1056;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA C
     oc = 1057;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA D
     oc = 1058;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA E
     oc = 1059;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA H
     oc = 1060;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->HL.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA L
     oc = 1061;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->HL.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (HL)
     oc = 1062;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla((*m)[r->HL.word], r);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA A
     oc = 1063;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA B
     oc = 1064;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA C
     oc = 1065;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA D
     oc = 1066;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA E
     oc = 1067;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA H
     oc = 1068;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->HL.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA L
     oc = 1069;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->HL.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (HL)
     oc = 1070;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra((*m)[r->HL.word], r);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA A
     oc = 1071;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sra(r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL B
     oc = 1072;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->BC.bytes.high, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL C
     oc = 1073;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->BC.bytes.low, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL D
     oc = 1074;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->DE.bytes.high, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL E
     oc = 1075;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->DE.bytes.low, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL H
     oc = 1076;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->HL.bytes.high, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL L
     oc = 1077;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->HL.bytes.low, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (HL)
     oc = 1078;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla((*m)[r->HL.word], r, true);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL A
     oc = 1079;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             sla(r->AF.bytes.high, r, true);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL B
     oc = 1080;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->BC.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL C
     oc = 1081;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->BC.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL D
     oc = 1082;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->DE.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL E
     oc = 1083;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->DE.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL H
     oc = 1084;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->HL.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL L
     oc = 1085;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->HL.bytes.low, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (HL)
     oc = 1086;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl((*m)[r->HL.word], r);
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL A
     oc = 1087;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             srl(r->AF.bytes.high, r);
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,B
     oc = 1088;
@@ -8530,9 +11225,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,C
     oc = 1089;
@@ -8541,9 +11239,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,D
     oc = 1090;
@@ -8552,9 +11253,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,E
     oc = 1091;
@@ -8563,9 +11267,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,H
     oc = 1092;
@@ -8574,9 +11281,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,L
     oc = 1093;
@@ -8585,9 +11295,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(HL)
     oc = 1094;
@@ -8596,9 +11309,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,A
     oc = 1095;
@@ -8607,9 +11323,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,B
     oc = 1096;
@@ -8618,9 +11337,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,C
     oc = 1097;
@@ -8629,9 +11351,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,D
     oc = 1098;
@@ -8640,9 +11365,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,E
     oc = 1099;
@@ -8651,9 +11379,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,H
     oc = 1100;
@@ -8662,9 +11393,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,L
     oc = 1101;
@@ -8673,9 +11407,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(HL)
     oc = 1102;
@@ -8684,9 +11421,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,A
     oc = 1103;
@@ -8695,9 +11435,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,B
     oc = 1104;
@@ -8706,9 +11449,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,C
     oc = 1105;
@@ -8717,9 +11463,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,D
     oc = 1106;
@@ -8728,9 +11477,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,E
     oc = 1107;
@@ -8739,9 +11491,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,H
     oc = 1108;
@@ -8750,9 +11505,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,L
     oc = 1109;
@@ -8761,9 +11519,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(HL)
     oc = 1110;
@@ -8772,9 +11533,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,A
     oc = 1111;
@@ -8783,9 +11547,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,B
     oc = 1112;
@@ -8794,9 +11561,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,C
     oc = 1113;
@@ -8805,9 +11575,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,D
     oc = 1114;
@@ -8816,9 +11589,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,E
     oc = 1115;
@@ -8827,9 +11603,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,H
     oc = 1116;
@@ -8838,9 +11617,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,L
     oc = 1117;
@@ -8849,9 +11631,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(HL)
     oc = 1118;
@@ -8860,9 +11645,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,A
     oc = 1119;
@@ -8871,9 +11659,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,B
     oc = 1120;
@@ -8882,9 +11673,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,C
     oc = 1121;
@@ -8893,9 +11687,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,D
     oc = 1122;
@@ -8904,9 +11701,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,E
     oc = 1123;
@@ -8915,9 +11715,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,H
     oc = 1124;
@@ -8926,9 +11729,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,L
     oc = 1125;
@@ -8937,9 +11743,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(HL)
     oc = 1126;
@@ -8948,9 +11757,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,A
     oc = 1127;
@@ -8959,9 +11771,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,B
     oc = 1128;
@@ -8970,9 +11785,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,C
     oc = 1129;
@@ -8981,9 +11799,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,D
     oc = 1130;
@@ -8992,9 +11813,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,E
     oc = 1131;
@@ -9003,9 +11827,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,H
     oc = 1132;
@@ -9014,9 +11841,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,L
     oc = 1133;
@@ -9025,9 +11855,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(HL)
     oc = 1134;
@@ -9036,9 +11869,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,A
     oc = 1135;
@@ -9047,9 +11883,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,B
     oc = 1136;
@@ -9058,9 +11897,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,C
     oc = 1137;
@@ -9069,9 +11911,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,D
     oc = 1138;
@@ -9080,9 +11925,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,E
     oc = 1139;
@@ -9091,9 +11939,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,H
     oc = 1140;
@@ -9102,9 +11953,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,L
     oc = 1141;
@@ -9113,9 +11967,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(HL)
     oc = 1142;
@@ -9124,9 +11981,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,A
     oc = 1143;
@@ -9135,9 +11995,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,B
     oc = 1144;
@@ -9146,9 +12009,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,C
     oc = 1145;
@@ -9157,9 +12023,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,D
     oc = 1146;
@@ -9168,9 +12037,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,E
     oc = 1147;
@@ -9179,9 +12051,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,H
     oc = 1148;
@@ -9190,9 +12065,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,L
     oc = 1149;
@@ -9201,9 +12079,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(HL)
     oc = 1150;
@@ -9212,9 +12093,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,A
     oc = 1151;
@@ -9223,1161 +12107,1548 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,B
     oc = 1152;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,C
     oc = 1153;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,D
     oc = 1154;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,E
     oc = 1155;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,H
     oc = 1156;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,L
     oc = 1157;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(HL)
     oc = 1158;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 0 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,A
     oc = 1159;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,B
     oc = 1160;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,C
     oc = 1161;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,D
     oc = 1162;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,E
     oc = 1163;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,H
     oc = 1164;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,L
     oc = 1165;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(HL)
     oc = 1166;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 1 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,A
     oc = 1167;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,B
     oc = 1168;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,C
     oc = 1169;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,D
     oc = 1170;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,E
     oc = 1171;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,H
     oc = 1172;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,L
     oc = 1173;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(HL)
     oc = 1174;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 2 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,A
     oc = 1175;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,B
     oc = 1176;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,C
     oc = 1177;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,D
     oc = 1178;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,E
     oc = 1179;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,H
     oc = 1180;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,L
     oc = 1181;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(HL)
     oc = 1182;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 3 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,A
     oc = 1183;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,B
     oc = 1184;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,C
     oc = 1185;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,D
     oc = 1186;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,E
     oc = 1187;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,H
     oc = 1188;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,L
     oc = 1189;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(HL)
     oc = 1190;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 4 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,A
     oc = 1191;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,B
     oc = 1192;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,C
     oc = 1193;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,D
     oc = 1194;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,E
     oc = 1195;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,H
     oc = 1196;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,L
     oc = 1197;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(HL)
     oc = 1198;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 5 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,A
     oc = 1199;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,B
     oc = 1200;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,C
     oc = 1201;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,D
     oc = 1202;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,E
     oc = 1203;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,H
     oc = 1204;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,L
     oc = 1205;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(HL)
     oc = 1206;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 6 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,A
     oc = 1207;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,B
     oc = 1208;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,C
     oc = 1209;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,D
     oc = 1210;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,E
     oc = 1211;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,H
     oc = 1212;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,L
     oc = 1213;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(HL)
     oc = 1214;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] &= ~( 0x1 << 7 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,A
     oc = 1215;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high &= ~( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,B
     oc = 1216;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,C
     oc = 1217;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,D
     oc = 1218;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,E
     oc = 1219;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,H
     oc = 1220;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,L
     oc = 1221;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(HL)
     oc = 1222;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 0 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,A
     oc = 1223;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 0 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,B
     oc = 1224;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,C
     oc = 1225;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,D
     oc = 1226;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,E
     oc = 1227;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,H
     oc = 1228;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,L
     oc = 1229;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(HL)
     oc = 1230;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 1 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,A
     oc = 1231;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 1 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
     
     // SET 2,B
     oc = 1232;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,C
     oc = 1233;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,D
     oc = 1234;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,E
     oc = 1235;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,H
     oc = 1236;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,L
     oc = 1237;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(HL)
     oc = 1238;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 2 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,A
     oc = 1239;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 2 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,B
     oc = 1240;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,C
     oc = 1241;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,D
     oc = 1242;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,E
     oc = 1243;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,H
     oc = 1244;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,L
     oc = 1245;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(HL)
     oc = 1246;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 3 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,A
     oc = 1247;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 3 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,B
     oc = 1248;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,C
     oc = 1249;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,D
     oc = 1250;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,E
     oc = 1251;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,H
     oc = 1252;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,L
     oc = 1253;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(HL)
     oc = 1254;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 4 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,A
     oc = 1255;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 4 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,B
     oc = 1256;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,C
     oc = 1257;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,D
     oc = 1258;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,E
     oc = 1259;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,H
     oc = 1260;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,L
     oc = 1261;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(HL)
     oc = 1262;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 5 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,A
     oc = 1263;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 5 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,B
     oc = 1264;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,C
     oc = 1265;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,D
     oc = 1266;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,E
     oc = 1267;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,H
     oc = 1268;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,L
     oc = 1269;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(HL)
     oc = 1270;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 6 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,A
     oc = 1271;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 6 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,B
     oc = 1272;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,C
     oc = 1273;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.low |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,D
     oc = 1274;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.high |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,E
     oc = 1275;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.bytes.low |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,H
     oc = 1276;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.high |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,L
     oc = 1277;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->HL.bytes.low |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(HL)
     oc = 1278;
     i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->HL.word] |= ( 0x1 << 7 );
-        }
+        },
+        4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 4, 3, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,A
     oc = 1279;
     i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high |= ( 0x1 << 7 );
-        }
+        },
+        2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 0, 0, 0, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* DDCB prefix instructions */
 
@@ -10393,9 +13664,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->C
     oc = 2305;
@@ -10409,9 +13683,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->D
     oc = 2306;
@@ -10425,9 +13702,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->E
     oc = 2307;
@@ -10441,9 +13721,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->H
     oc = 2308;
@@ -10457,9 +13740,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->L
     oc = 2309;
@@ -10473,9 +13759,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)
     oc = 2310;
@@ -10490,9 +13779,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->IX.word + ((int8_t)d[0])] = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IX+d)->A
     oc = 2311;
@@ -10506,9 +13798,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->B
     oc = 2312;
@@ -10522,9 +13817,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->C
     oc = 2313;
@@ -10538,9 +13836,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->D
     oc = 2314;
@@ -10554,9 +13855,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->E
     oc = 2315;
@@ -10570,9 +13874,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->H
     oc = 2316;
@@ -10586,9 +13893,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->L
     oc = 2317;
@@ -10602,9 +13912,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)
     oc = 2318;
@@ -10619,9 +13932,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IX.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IX+d)->A
     oc = 2319;
@@ -10635,9 +13951,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->B
     oc = 2320;
@@ -10650,9 +13969,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->C
     oc = 2321;
@@ -10665,9 +13987,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->D
     oc = 2322;
@@ -10680,9 +14005,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->E
     oc = 2323;
@@ -10695,9 +14023,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->H
     oc = 2324;
@@ -10710,9 +14041,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->L
     oc = 2325;
@@ -10725,9 +14059,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)
     oc = 2326;
@@ -10741,9 +14078,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IX.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IX+d)->A
     oc = 2327;
@@ -10756,9 +14096,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->B
     oc = 2328;
@@ -10771,9 +14114,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->C
     oc = 2329;
@@ -10786,9 +14132,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->D
     oc = 2330;
@@ -10801,9 +14150,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->E
     oc = 2331;
@@ -10816,9 +14168,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->H
     oc = 2332;
@@ -10831,9 +14186,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->L
     oc = 2333;
@@ -10846,9 +14204,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)
     oc = 2334;
@@ -10862,9 +14223,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IX.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IX+d)->A
     oc = 2335;
@@ -10877,9 +14241,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IX.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->B
     oc = 2336;
@@ -10887,9 +14254,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->C
     oc = 2337;
@@ -10897,9 +14267,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->D
     oc = 2338;
@@ -10907,9 +14280,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->E
     oc = 2339;
@@ -10917,9 +14293,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->H
     oc = 2340;
@@ -10927,9 +14306,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->L
     oc = 2341;
@@ -10937,18 +14319,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)
     oc = 2342;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IX+d)->A
     oc = 2343;
@@ -10956,9 +14344,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->B
     oc = 2344;
@@ -10966,9 +14357,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->C
     oc = 2345;
@@ -10976,9 +14370,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->D
     oc = 2346;
@@ -10986,9 +14383,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->E
     oc = 2347;
@@ -10996,9 +14396,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->H
     oc = 2348;
@@ -11006,9 +14409,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->L
     oc = 2349;
@@ -11016,18 +14422,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)
     oc = 2350;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IX+d)->A
     oc = 2351;
@@ -11035,9 +14447,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->B
     oc = 2352;
@@ -11045,9 +14460,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->C
     oc = 2353;
@@ -11055,9 +14473,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->D
     oc = 2354;
@@ -11065,9 +14486,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->E
     oc = 2355;
@@ -11075,9 +14499,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->H
     oc = 2356;
@@ -11085,9 +14512,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->L
     oc = 2357;
@@ -11095,18 +14525,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)
     oc = 2358;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IX+d)->A
     oc = 2359;
@@ -11114,9 +14550,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IX.word + ((int8_t)d[0])]), r, true);
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->B
     oc = 2360;
@@ -11124,9 +14563,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->C
     oc = 2361;
@@ -11134,9 +14576,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->D
     oc = 2362;
@@ -11144,9 +14589,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->E
     oc = 2363;
@@ -11154,9 +14602,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->H
     oc = 2364;
@@ -11164,9 +14615,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->L
     oc = 2365;
@@ -11174,18 +14628,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)
     oc = 2366;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IX+d)->A
     oc = 2367;
@@ -11193,9 +14653,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IX.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2368;
@@ -11204,9 +14667,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2369;
@@ -11215,9 +14681,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2370;
@@ -11226,9 +14695,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2371;
@@ -11237,9 +14709,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2372;
@@ -11248,9 +14723,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2373;
@@ -11259,9 +14737,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2374;
@@ -11270,9 +14751,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IX+d)
     oc = 2375;
@@ -11281,9 +14765,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2376;
@@ -11292,9 +14779,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2377;
@@ -11303,9 +14793,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2378;
@@ -11314,9 +14807,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2379;
@@ -11325,9 +14821,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2380;
@@ -11336,9 +14835,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2381;
@@ -11347,9 +14849,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2382;
@@ -11358,9 +14863,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IX+d)
     oc = 2383;
@@ -11369,9 +14877,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2384;
@@ -11380,9 +14891,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2385;
@@ -11391,9 +14905,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2386;
@@ -11402,9 +14919,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2387;
@@ -11413,9 +14933,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2388;
@@ -11424,9 +14947,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2389;
@@ -11435,9 +14961,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2390;
@@ -11446,9 +14975,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IX+d)
     oc = 2391;
@@ -11457,9 +14989,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2392;
@@ -11468,9 +15003,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2393;
@@ -11479,9 +15017,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2394;
@@ -11490,9 +15031,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2395;
@@ -11501,9 +15045,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2396;
@@ -11512,9 +15059,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2397;
@@ -11523,9 +15073,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2398;
@@ -11534,9 +15087,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IX+d)
     oc = 2399;
@@ -11545,9 +15101,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2400;
@@ -11556,9 +15115,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2401;
@@ -11567,9 +15129,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2402;
@@ -11578,9 +15143,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)(((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2403;
@@ -11589,9 +15157,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2404;
@@ -11600,9 +15171,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2405;
@@ -11611,9 +15185,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2406;
@@ -11622,9 +15199,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IX+d)
     oc = 2407;
@@ -11633,9 +15213,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2408;
@@ -11644,9 +15227,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2409;
@@ -11655,9 +15241,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2410;
@@ -11666,9 +15255,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2411;
@@ -11677,9 +15269,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2412;
@@ -11688,9 +15283,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2413;
@@ -11699,9 +15297,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2414;
@@ -11710,9 +15311,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IX+d)
     oc = 2415;
@@ -11721,9 +15325,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2416;
@@ -11732,9 +15339,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2417;
@@ -11743,9 +15353,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2418;
@@ -11754,9 +15367,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2419;
@@ -11765,9 +15381,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2420;
@@ -11776,9 +15395,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2421;
@@ -11787,9 +15409,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2422;
@@ -11798,9 +15423,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IX+d)
     oc = 2423;
@@ -11809,9 +15437,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2424;
@@ -11820,9 +15451,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2425;
@@ -11831,9 +15465,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2426;
@@ -11842,9 +15479,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2427;
@@ -11853,9 +15493,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2428;
@@ -11864,9 +15507,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2429;
@@ -11875,9 +15521,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2430;
@@ -11886,9 +15535,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IX+d)
     oc = 2431;
@@ -11897,9 +15549,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IX.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->B
     oc = 2432;
@@ -11907,9 +15562,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->C
     oc = 2433;
@@ -11917,9 +15575,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->D
     oc = 2434;
@@ -11927,9 +15588,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->E
     oc = 2435;
@@ -11937,9 +15601,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->H
     oc = 2436;
@@ -11947,9 +15614,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->L
     oc = 2437;
@@ -11957,18 +15627,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)
     oc = 2438;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IX+d)->A
     oc = 2439;
@@ -11976,9 +15652,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->B
     oc = 2440;
@@ -11986,9 +15665,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->C
     oc = 2441;
@@ -11996,9 +15678,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->D
     oc = 2442;
@@ -12006,9 +15691,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->E
     oc = 2443;
@@ -12016,9 +15704,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->H
     oc = 2444;
@@ -12026,9 +15717,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->L
     oc = 2445;
@@ -12036,18 +15730,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)
     oc = 2446;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IX+d)->A
     oc = 2447;
@@ -12055,9 +15755,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->B
     oc = 2448;
@@ -12065,9 +15768,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->C
     oc = 2449;
@@ -12075,9 +15781,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->D
     oc = 2450;
@@ -12085,9 +15794,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->E
     oc = 2451;
@@ -12095,9 +15807,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->H
     oc = 2452;
@@ -12105,9 +15820,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->L
     oc = 2453;
@@ -12115,18 +15833,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)
     oc = 2454;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IX+d)->A
     oc = 2455;
@@ -12134,9 +15858,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->B
     oc = 2456;
@@ -12144,9 +15871,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->C
     oc = 2457;
@@ -12154,9 +15884,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->D
     oc = 2458;
@@ -12164,9 +15897,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->E
     oc = 2459;
@@ -12174,9 +15910,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->H
     oc = 2460;
@@ -12184,9 +15923,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->L
     oc = 2461;
@@ -12194,18 +15936,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)
     oc = 2462;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IX+d)->A
     oc = 2463;
@@ -12213,9 +15961,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->B
     oc = 2464;
@@ -12223,9 +15974,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->C
     oc = 2465;
@@ -12233,9 +15987,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->D
     oc = 2466;
@@ -12243,9 +16000,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->E
     oc = 2467;
@@ -12253,9 +16013,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->H
     oc = 2468;
@@ -12263,9 +16026,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->L
     oc = 2469;
@@ -12273,18 +16039,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)
     oc = 2470;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IX+d)->A
     oc = 2471;
@@ -12292,9 +16064,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->B
     oc = 2472;
@@ -12302,9 +16077,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->C
     oc = 2473;
@@ -12312,9 +16090,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->D
     oc = 2474;
@@ -12322,9 +16103,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->E
     oc = 2475;
@@ -12332,9 +16116,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->H
     oc = 2476;
@@ -12342,9 +16129,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->L
     oc = 2477;
@@ -12352,18 +16142,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)
     oc = 2478;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IX+d)->A
     oc = 2479;
@@ -12371,9 +16167,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->B
     oc = 2480;
@@ -12381,9 +16180,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->C
     oc = 2481;
@@ -12391,9 +16193,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->D
     oc = 2482;
@@ -12401,9 +16206,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->E
     oc = 2483;
@@ -12411,9 +16219,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->H
     oc = 2484;
@@ -12421,9 +16232,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->L
     oc = 2485;
@@ -12431,18 +16245,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)
     oc = 2486;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IX+d)->A
     oc = 2487;
@@ -12450,9 +16270,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->B
     oc = 2488;
@@ -12460,9 +16283,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->C
     oc = 2489;
@@ -12470,9 +16296,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->D
     oc = 2490;
@@ -12480,9 +16309,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->E
     oc = 2491;
@@ -12490,9 +16322,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->H
     oc = 2492;
@@ -12500,9 +16335,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->L
     oc = 2493;
@@ -12510,18 +16348,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)
     oc = 2494;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IX+d)->A
     oc = 2495;
@@ -12529,9 +16373,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->B
     oc = 2496;
@@ -12539,9 +16386,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->C
     oc = 2497;
@@ -12549,9 +16399,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->D
     oc = 2498;
@@ -12559,9 +16412,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->E
     oc = 2499;
@@ -12569,9 +16425,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->H
     oc = 2500;
@@ -12579,9 +16438,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->L
     oc = 2501;
@@ -12589,18 +16451,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)
     oc = 2502;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IX+d)->A
     oc = 2503;
@@ -12608,9 +16476,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->B
     oc = 2504;
@@ -12618,9 +16489,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->C
     oc = 2505;
@@ -12628,9 +16502,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->D
     oc = 2506;
@@ -12638,9 +16515,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->E
     oc = 2507;
@@ -12648,9 +16528,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->H
     oc = 2508;
@@ -12658,9 +16541,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->L
     oc = 2509;
@@ -12668,18 +16554,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)
     oc = 2510;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IX+d)->A
     oc = 2511;
@@ -12687,9 +16579,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
     
     // SET 2,(IX+d)->B
     oc = 2512;
@@ -12697,9 +16592,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->C
     oc = 2513;
@@ -12707,9 +16605,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->D
     oc = 2514;
@@ -12717,9 +16618,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->E
     oc = 2515;
@@ -12727,9 +16631,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->H
     oc = 2516;
@@ -12737,9 +16644,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->L
     oc = 2517;
@@ -12747,18 +16657,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)
     oc = 2518;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IX+d)->A
     oc = 2519;
@@ -12766,9 +16682,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->B
     oc = 2520;
@@ -12776,9 +16695,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->C
     oc = 2521;
@@ -12786,9 +16708,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->D
     oc = 2522;
@@ -12796,9 +16721,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->E
     oc = 2523;
@@ -12806,9 +16734,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->H
     oc = 2524;
@@ -12816,9 +16747,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->L
     oc = 2525;
@@ -12826,18 +16760,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)
     oc = 2526;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IX+d)->A
     oc = 2527;
@@ -12845,9 +16785,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->B
     oc = 2528;
@@ -12855,9 +16798,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->C
     oc = 2529;
@@ -12865,9 +16811,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->D
     oc = 2530;
@@ -12875,9 +16824,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->E
     oc = 2531;
@@ -12885,9 +16837,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->H
     oc = 2532;
@@ -12895,9 +16850,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->L
     oc = 2533;
@@ -12905,18 +16863,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)
     oc = 2534;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IX+d)->A
     oc = 2535;
@@ -12924,9 +16888,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->B
     oc = 2536;
@@ -12934,9 +16901,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->C
     oc = 2537;
@@ -12944,9 +16914,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->D
     oc = 2538;
@@ -12954,9 +16927,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->E
     oc = 2539;
@@ -12964,9 +16940,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->H
     oc = 2540;
@@ -12974,9 +16953,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->L
     oc = 2541;
@@ -12984,18 +16966,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)
     oc = 2542;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IX+d)->A
     oc = 2543;
@@ -13003,9 +16991,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->B
     oc = 2544;
@@ -13013,9 +17004,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->C
     oc = 2545;
@@ -13023,9 +17017,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->D
     oc = 2546;
@@ -13033,9 +17030,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->E
     oc = 2547;
@@ -13043,9 +17043,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->H
     oc = 2548;
@@ -13053,9 +17056,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->L
     oc = 2549;
@@ -13063,18 +17069,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)
     oc = 2550;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IX+d)->A
     oc = 2551;
@@ -13082,9 +17094,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->B
     oc = 2552;
@@ -13092,9 +17107,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->BC.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->C
     oc = 2553;
@@ -13102,9 +17120,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->BC.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->D
     oc = 2554;
@@ -13112,9 +17133,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->DE.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->E
     oc = 2555;
@@ -13122,9 +17146,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->DE.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->H
     oc = 2556;
@@ -13132,9 +17159,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->HL.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->L
     oc = 2557;
@@ -13142,18 +17172,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->HL.bytes.low = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)
     oc = 2558;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IX+d)->A
     oc = 2559;
@@ -13161,9 +17197,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IX.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->AF.bytes.high = ((*m)[r->IX.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     /* FDCB prefix instructions */
 
@@ -13179,9 +17218,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->C
     oc = 2561;
@@ -13195,9 +17237,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->D
     oc = 2562;
@@ -13211,9 +17256,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->E
     oc = 2563;
@@ -13227,9 +17275,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->H
     oc = 2564;
@@ -13243,9 +17294,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->L
     oc = 2565;
@@ -13259,9 +17313,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)
     oc = 2566;
@@ -13276,9 +17333,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             (*m)[r->IY.word + ((int8_t)d[0])] = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RLC (IY+d)->A
     oc = 2567;
@@ -13292,9 +17352,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->B
     oc = 2568;
@@ -13308,9 +17371,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->C
     oc = 2569;
@@ -13324,9 +17390,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->D
     oc = 2570;
@@ -13340,9 +17409,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->E
     oc = 2571;
@@ -13356,9 +17428,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->H
     oc = 2572;
@@ -13372,9 +17447,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->L
     oc = 2573;
@@ -13388,9 +17466,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)
     oc = 2574;
@@ -13405,9 +17486,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IY.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RRC (IY+d)->A
     oc = 2575;
@@ -13421,9 +17505,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->B
     oc = 2576;
@@ -13436,9 +17523,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->C
     oc = 2577;
@@ -13451,9 +17541,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->D
     oc = 2578;
@@ -13466,9 +17559,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->E
     oc = 2579;
@@ -13481,9 +17577,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->H
     oc = 2580;
@@ -13496,9 +17595,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->L
     oc = 2581;
@@ -13511,9 +17613,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)
     oc = 2582;
@@ -13527,9 +17632,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IY.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RL (IY+d)->A
     oc = 2583;
@@ -13542,9 +17650,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->B
     oc = 2584;
@@ -13557,9 +17668,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->C
     oc = 2585;
@@ -13572,9 +17686,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->D
     oc = 2586;
@@ -13587,9 +17704,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->E
     oc = 2587;
@@ -13602,9 +17722,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->H
     oc = 2588;
@@ -13617,9 +17740,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->L
     oc = 2589;
@@ -13632,9 +17758,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)
     oc = 2590;
@@ -13648,9 +17777,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(hlMem);
             ((*m)[r->IY.word + ((int8_t)d[0])]) = hlMem;
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RR (IY+d)->A
     oc = 2591;
@@ -13663,9 +17795,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.HF = false;
             r->AF.bytes.low.PF = hasEvenParity(((*m)[r->IY.word + ((int8_t)d[0])]));
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->B
     oc = 2592;
@@ -13673,9 +17808,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->C
     oc = 2593;
@@ -13683,9 +17821,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->D
     oc = 2594;
@@ -13693,9 +17834,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->E
     oc = 2595;
@@ -13703,9 +17847,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->H
     oc = 2596;
@@ -13713,9 +17860,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->L
     oc = 2597;
@@ -13723,18 +17873,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)
     oc = 2598;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLA (IY+d)->A
     oc = 2599;
@@ -13742,9 +17898,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->B
     oc = 2600;
@@ -13752,9 +17911,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->C
     oc = 2601;
@@ -13762,9 +17924,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->D
     oc = 2602;
@@ -13772,9 +17937,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->E
     oc = 2603;
@@ -13782,9 +17950,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->H
     oc = 2604;
@@ -13792,9 +17963,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->L
     oc = 2605;
@@ -13802,18 +17976,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)
     oc = 2606;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRA (IY+d)->A
     oc = 2607;
@@ -13821,9 +18001,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sra(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->B
     oc = 2608;
@@ -13831,9 +18014,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->C
     oc = 2609;
@@ -13841,9 +18027,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->D
     oc = 2610;
@@ -13851,9 +18040,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->E
     oc = 2611;
@@ -13861,9 +18053,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->H
     oc = 2612;
@@ -13871,9 +18066,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->L
     oc = 2613;
@@ -13881,18 +18079,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)
     oc = 2614;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SLL (IY+d)->A
     oc = 2615;
@@ -13900,9 +18104,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             sla(((*m)[r->IY.word + ((int8_t)d[0])]), r, true);
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->B
     oc = 2616;
@@ -13910,9 +18117,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->C
     oc = 2617;
@@ -13920,9 +18130,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->D
     oc = 2618;
@@ -13930,9 +18143,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->E
     oc = 2619;
@@ -13940,9 +18156,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->H
     oc = 2620;
@@ -13950,9 +18169,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->L
     oc = 2621;
@@ -13960,18 +18182,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)
     oc = 2622;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SRL (IY+d)->A
     oc = 2623;
@@ -13979,9 +18207,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             srl(((*m)[r->IY.word + ((int8_t)d[0])]), r);
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2624;
@@ -13990,9 +18221,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2625;
@@ -14001,9 +18235,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2626;
@@ -14012,9 +18249,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2627;
@@ -14023,9 +18263,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2628;
@@ -14034,9 +18277,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2629;
@@ -14045,9 +18291,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2630;
@@ -14056,9 +18305,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 0,(IY+d)
     oc = 2631;
@@ -14067,9 +18319,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2632;
@@ -14078,9 +18333,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2633;
@@ -14089,9 +18347,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2634;
@@ -14100,9 +18361,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2635;
@@ -14111,9 +18375,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2636;
@@ -14122,9 +18389,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2637;
@@ -14133,9 +18403,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2638;
@@ -14144,9 +18417,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 1,(IY+d)
     oc = 2639;
@@ -14155,9 +18431,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2640;
@@ -14166,9 +18445,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2641;
@@ -14177,9 +18459,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2642;
@@ -14188,9 +18473,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2643;
@@ -14199,9 +18487,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2644;
@@ -14210,9 +18501,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2645;
@@ -14221,9 +18515,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2646;
@@ -14232,9 +18529,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 2,(IY+d)
     oc = 2647;
@@ -14243,9 +18543,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2648;
@@ -14254,9 +18557,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2649;
@@ -14265,9 +18571,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2650;
@@ -14276,9 +18585,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2651;
@@ -14287,9 +18599,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2652;
@@ -14298,9 +18613,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2653;
@@ -14309,9 +18627,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2654;
@@ -14320,9 +18641,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 3,(IY+d)
     oc = 2655;
@@ -14331,9 +18655,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2656;
@@ -14342,9 +18669,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2657;
@@ -14353,9 +18683,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2658;
@@ -14364,9 +18697,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)(((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2659;
@@ -14375,9 +18711,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2660;
@@ -14386,9 +18725,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2661;
@@ -14397,9 +18739,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2662;
@@ -14408,9 +18753,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 4,(IY+d)
     oc = 2663;
@@ -14419,9 +18767,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2664;
@@ -14430,9 +18781,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2665;
@@ -14441,9 +18795,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2666;
@@ -14452,9 +18809,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2667;
@@ -14463,9 +18823,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2668;
@@ -14474,9 +18837,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2669;
@@ -14485,9 +18851,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2670;
@@ -14496,9 +18865,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 5,(IY+d)
     oc = 2671;
@@ -14507,9 +18879,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2672;
@@ -14518,9 +18893,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2673;
@@ -14529,9 +18907,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2674;
@@ -14540,9 +18921,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2675;
@@ -14551,9 +18935,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2676;
@@ -14562,9 +18949,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2677;
@@ -14573,9 +18963,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2678;
@@ -14584,9 +18977,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 6,(IY+d)
     oc = 2679;
@@ -14595,9 +18991,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2680;
@@ -14606,9 +19005,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2681;
@@ -14617,9 +19019,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2682;
@@ -14628,9 +19033,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2683;
@@ -14639,9 +19047,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2684;
@@ -14650,9 +19061,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2685;
@@ -14661,9 +19075,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2686;
@@ -14672,9 +19089,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // BIT 7,(IY+d)
     oc = 2687;
@@ -14683,9 +19103,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
-        }
+        },
+        5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 0, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->B
     oc = 2688;
@@ -14693,9 +19116,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->C
     oc = 2689;
@@ -14703,9 +19129,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->D
     oc = 2690;
@@ -14713,9 +19142,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->E
     oc = 2691;
@@ -14723,9 +19155,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->H
     oc = 2692;
@@ -14733,9 +19168,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->L
     oc = 2693;
@@ -14743,18 +19181,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)
     oc = 2694;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 0,(IY+d)->A
     oc = 2695;
@@ -14762,9 +19206,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 0 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->B
     oc = 2696;
@@ -14772,9 +19219,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->C
     oc = 2697;
@@ -14782,9 +19232,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->D
     oc = 2698;
@@ -14792,9 +19245,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->E
     oc = 2699;
@@ -14802,9 +19258,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->H
     oc = 2700;
@@ -14812,9 +19271,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->L
     oc = 2701;
@@ -14822,18 +19284,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)
     oc = 2702;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 1,(IY+d)->A
     oc = 2703;
@@ -14841,9 +19309,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 1 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->B
     oc = 2704;
@@ -14851,9 +19322,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->C
     oc = 2705;
@@ -14861,9 +19335,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->D
     oc = 2706;
@@ -14871,9 +19348,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->E
     oc = 2707;
@@ -14881,9 +19361,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->H
     oc = 2708;
@@ -14891,9 +19374,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->L
     oc = 2709;
@@ -14901,18 +19387,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)
     oc = 2710;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 2,(IY+d)->A
     oc = 2711;
@@ -14920,9 +19412,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 2 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->B
     oc = 2712;
@@ -14930,9 +19425,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->C
     oc = 2713;
@@ -14940,9 +19438,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->D
     oc = 2714;
@@ -14950,9 +19451,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->E
     oc = 2715;
@@ -14960,9 +19464,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->H
     oc = 2716;
@@ -14970,9 +19477,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->L
     oc = 2717;
@@ -14980,18 +19490,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)
     oc = 2718;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 3,(IY+d)->A
     oc = 2719;
@@ -14999,9 +19515,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 3 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->B
     oc = 2720;
@@ -15009,9 +19528,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->C
     oc = 2721;
@@ -15019,9 +19541,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->D
     oc = 2722;
@@ -15029,9 +19554,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->E
     oc = 2723;
@@ -15039,9 +19567,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->H
     oc = 2724;
@@ -15049,9 +19580,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->L
     oc = 2725;
@@ -15059,18 +19593,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)
     oc = 2726;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 4,(IY+d)->A
     oc = 2727;
@@ -15078,9 +19618,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 4 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->B
     oc = 2728;
@@ -15088,9 +19631,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->C
     oc = 2729;
@@ -15098,9 +19644,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->D
     oc = 2730;
@@ -15108,9 +19657,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->E
     oc = 2731;
@@ -15118,9 +19670,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->H
     oc = 2732;
@@ -15128,9 +19683,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->L
     oc = 2733;
@@ -15138,18 +19696,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)
     oc = 2734;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 5,(IY+d)->A
     oc = 2735;
@@ -15157,9 +19721,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 5 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->B
     oc = 2736;
@@ -15167,9 +19734,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->C
     oc = 2737;
@@ -15177,9 +19747,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->D
     oc = 2738;
@@ -15187,9 +19760,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->E
     oc = 2739;
@@ -15197,9 +19773,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->H
     oc = 2740;
@@ -15207,9 +19786,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->L
     oc = 2741;
@@ -15217,18 +19799,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)
     oc = 2742;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 6,(IY+d)->A
     oc = 2743;
@@ -15236,9 +19824,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 6 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->B
     oc = 2744;
@@ -15246,9 +19837,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->C
     oc = 2745;
@@ -15256,9 +19850,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->D
     oc = 2746;
@@ -15266,9 +19863,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->E
     oc = 2747;
@@ -15276,9 +19876,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->H
     oc = 2748;
@@ -15286,9 +19889,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->L
     oc = 2749;
@@ -15296,18 +19902,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)
     oc = 2750;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // RES 7,(IY+d)->A
     oc = 2751;
@@ -15315,9 +19927,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) &= ~( 0x1 << 7 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->B
     oc = 2752;
@@ -15325,9 +19940,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->C
     oc = 2753;
@@ -15335,9 +19953,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->D
     oc = 2754;
@@ -15345,9 +19966,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->E
     oc = 2755;
@@ -15355,9 +19979,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->H
     oc = 2756;
@@ -15365,9 +19992,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->L
     oc = 2757;
@@ -15375,18 +20005,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)
     oc = 2758;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 0,(IY+d)->A
     oc = 2759;
@@ -15394,9 +20030,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 0 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->B
     oc = 2760;
@@ -15404,9 +20043,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->C
     oc = 2761;
@@ -15414,9 +20056,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->D
     oc = 2762;
@@ -15424,9 +20069,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->E
     oc = 2763;
@@ -15434,9 +20082,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->H
     oc = 2764;
@@ -15444,9 +20095,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->L
     oc = 2765;
@@ -15454,18 +20108,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)
     oc = 2766;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 1,(IY+d)->A
     oc = 2767;
@@ -15473,9 +20133,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 1 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
     
     // SET 2,(IY+d)->B
     oc = 2768;
@@ -15483,9 +20146,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->C
     oc = 2769;
@@ -15493,9 +20159,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->D
     oc = 2770;
@@ -15503,9 +20172,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->E
     oc = 2771;
@@ -15513,9 +20185,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->H
     oc = 2772;
@@ -15523,9 +20198,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->L
     oc = 2773;
@@ -15533,18 +20211,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)
     oc = 2774;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 2,(IY+d)->A
     oc = 2775;
@@ -15552,9 +20236,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 2 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->B
     oc = 2776;
@@ -15562,9 +20249,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->C
     oc = 2777;
@@ -15572,9 +20262,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->D
     oc = 2778;
@@ -15582,9 +20275,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->E
     oc = 2779;
@@ -15592,9 +20288,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->H
     oc = 2780;
@@ -15602,9 +20301,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->L
     oc = 2781;
@@ -15612,18 +20314,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)
     oc = 2782;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 3,(IY+d)->A
     oc = 2783;
@@ -15631,9 +20339,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 3 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->B
     oc = 2784;
@@ -15641,9 +20352,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->C
     oc = 2785;
@@ -15651,9 +20365,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->D
     oc = 2786;
@@ -15661,9 +20378,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->E
     oc = 2787;
@@ -15671,9 +20391,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->H
     oc = 2788;
@@ -15681,9 +20404,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->L
     oc = 2789;
@@ -15691,18 +20417,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)
     oc = 2790;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 4,(IY+d)->A
     oc = 2791;
@@ -15710,9 +20442,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 4 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->B
     oc = 2792;
@@ -15720,9 +20455,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->C
     oc = 2793;
@@ -15730,9 +20468,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->D
     oc = 2794;
@@ -15740,9 +20481,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->E
     oc = 2795;
@@ -15750,9 +20494,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->H
     oc = 2796;
@@ -15760,9 +20507,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->L
     oc = 2797;
@@ -15770,18 +20520,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)
     oc = 2798;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 5,(IY+d)->A
     oc = 2799;
@@ -15789,9 +20545,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 5 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->B
     oc = 2800;
@@ -15799,9 +20558,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->C
     oc = 2801;
@@ -15809,9 +20571,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->D
     oc = 2802;
@@ -15819,9 +20584,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->E
     oc = 2803;
@@ -15829,9 +20597,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->H
     oc = 2804;
@@ -15839,9 +20610,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->L
     oc = 2805;
@@ -15849,18 +20623,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)
     oc = 2806;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 6,(IY+d)->A
     oc = 2807;
@@ -15868,9 +20648,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 6 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->B
     oc = 2808;
@@ -15878,9 +20661,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->BC.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->C
     oc = 2809;
@@ -15888,9 +20674,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->BC.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->D
     oc = 2810;
@@ -15898,9 +20687,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->DE.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->E
     oc = 2811;
@@ -15908,9 +20700,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->DE.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->H
     oc = 2812;
@@ -15918,9 +20713,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->HL.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->L
     oc = 2813;
@@ -15928,18 +20726,24 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->HL.bytes.low = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)
     oc = 2814;
     i = { 23, 23, 1, INST{
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     // SET 7,(IY+d)->A
     oc = 2815;
@@ -15947,9 +20751,12 @@ std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             ((*m)[r->IY.word + ((int8_t)d[0])]) |= ( 0x1 << 7 );
             r->AF.bytes.high = ((*m)[r->IY.word + ((int8_t)d[0])]);
-        }
+        },
+        6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
+        { 4, 4, 3, 5, 4, 3, 0 }
+   
     };
-    instructions[oc] = i;
+    (*instructions)[oc] = i;
 
     return instructions;
 }

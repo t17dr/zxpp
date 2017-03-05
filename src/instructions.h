@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 #include <array>
+#include <memory>
 
 #include "defines.h"
 #include "instruction.h"
@@ -39,6 +40,6 @@ struct hash<opcode>{
 #define INST [](Z80* z, Spectrum48KMemory* m, std::vector<uint8_t> d)
 
 // Create the instruction set
-std::array<Instruction, NUM_INSTRUCTIONS> z80InstructionSet();
+std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet();
 
 #endif

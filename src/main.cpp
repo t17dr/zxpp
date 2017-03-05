@@ -17,6 +17,7 @@
 #include <functional>
 #include <string>
 #include <chrono>
+#include <memory>
 
 #include "utils.h"
 
@@ -59,12 +60,13 @@ int main(int argc, char* args[])
     #define ITERS 100000
 
     int op = 9;
-    std::array<Instruction, NUM_INSTRUCTIONS> instructions = z80InstructionSet();
+    std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> instructions
+        = z80InstructionSet();
     std::vector<uint8_t> data;// = {7, 235};
     proc.getRegisters()->HL.word = 0;
     proc.getRegisters()->BC.word = 1;
 
-    auto u = instructions[op];
+    auto u = (*instructions)[op];
     auto start1 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < ITERS; i++)
     {
@@ -83,7 +85,7 @@ int main(int argc, char* args[])
     start1 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < ITERS; i++)
     {
-        auto v = instructions[op];//.execute(&proc, &memory, data);
+        auto v = (*instructions)[op];//.execute(&proc, &memory, data);
 //u.execute(&proc, &memory, data);
     }
 
@@ -99,7 +101,7 @@ int main(int argc, char* args[])
     start1 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < ITERS; i++)
     {
-        instructions[op].execute(&proc, &memory, data);
+        (*instructions)[op].execute(&proc, &memory, data);
 //u.execute(&proc, &memory, data);
     }
 
@@ -228,10 +230,16 @@ int main(int argc, char* args[])
 
     // proc.printState();
 
-    const std::string file = "48.rom";
+
+    std::string file = "48.rom";
+    // const std::string file = "DiagROM.v27";
     // const std::string file = "testrom.bin";
     // const std::string file = "test.hex";
 
+    if (argc > 1)
+    {
+        file = std::string(args[1]);
+    }
     std::ifstream inf;
     inf.open(file, std::ios::in|std::ios::binary);
 

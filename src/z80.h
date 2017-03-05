@@ -16,6 +16,7 @@
 // #include <unordered_map>
 #include <assert.h>
 #include <array>
+#include <memory>
 
 typedef std::tuple<uint8_t, uint8_t, uint8_t> opcode;
 
@@ -151,7 +152,7 @@ class Z80 {
         bool m_isWaiting;               // WAIT pin active
         int m_interruptMode;
 
-        std::array<Instruction, NUM_INSTRUCTIONS> m_instructionSet;
+        std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> m_instructionSet;
 
         int m_cyclesSinceLastFrame;
 };

@@ -114,7 +114,7 @@ void Z80::setInterruptMode(int m)
 
 int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
 {
-    Instruction instruction = m_instructionSet[instBytes];
+    Instruction instruction = (*m_instructionSet)[instBytes];
 
     std::vector<uint8_t> data;
     int i = 0;
