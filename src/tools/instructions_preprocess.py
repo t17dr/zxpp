@@ -3,8 +3,9 @@
     add more timing information, perform automatic correctness checks
 
     Usage:
-        python instructions_preprocess.py <instructions.orig>
+        python instructions_preprocess.py <instructions.orig> [arguments]
         Creates <instructions.orig>.new in the same directory
+        --fix fixes bad T-state timing according to timings.txt
 '''
 
 import sys
@@ -180,10 +181,6 @@ def parsed_opcode_to_list(opcode):
 
 def find_timing(opcode, timings):
     ''' Find timing entry by opcode '''
-    # print(timings[12])
-    # print(parse_opcode(timings[12]["opcode"]))
-    # print(parsed_opcode_to_list(parse_opcode(timings[12]["opcode"])))
-    # print(opcode)
     for row in timings:
         if opcode == parsed_opcode_to_list(parse_opcode(row["opcode"])):
             return row
@@ -257,13 +254,94 @@ def add_timing(lines, timings):
     print("")   # Newline
 
 
-def validate_timing(lines, timings):
+def validate_timing(lines, timings, fix=False):
     ''' Validate instructions timing information '''
-    pass
+    print("Checking instruction T-state timing...")
+
+    current_opcode = [0, 0, 0]
+    current_timing = None
+
+    i = 1
+    valid = True
+    bad = 0
+
+    for key, line in enumerate(lines):
+        is_oc = re.match(r"\s*(oc|opcode oc)\s*\=\s*\{\s*([a-zA-Z\dx]+)\s*,\s*([a-zA-Z\dx]+)\s*,\s*([a-zA-Z\dx]+)\}", line)
+        if is_oc != None:
+            current_opcode = [int(is_oc.group(2), 16), \
+                                int(is_oc.group(3), 16), \
+                                int(is_oc.group(4), 16)]
+            current_timing = find_timing(current_opcode, timings)
+
+        inst = re.match(r"\s*(Instruction i|i)\s*\=\s*\{\s*(\d+)\s*,\s*(\d+)", line)
+        if inst != None:
+            no_jump = int(inst.group(2))
+            jump = int(inst.group(3))
+
+            if jump != current_timing["t0"]:
+                valid = False
+                bad += 1
+                print("Bad jump timing: line " + str(i) + " should be " + str(current_timing["t0"]))
+                if fix:
+                    print("fixing...")
+                    ln = re.match(r"(\s*(Instruction i|i)\s*\=\s*\{\s*)\d+\s*,\s*\d+(.*)", line)
+                    if ln != None:
+                        lines[key] = ln.group(1)
+                        if no_jump == jump:
+                            lines[key] += str(current_timing["t0"])
+                        else:
+                            lines[key] += str(no_jump)
+                        lines[key] += ", " + str(current_timing["t0"])
+                        lines[key] += ln.group(3) + "\n"
+            if no_jump != current_timing["t1"]:
+                if current_timing["t1"] == 0:
+                    if jump != no_jump:
+                        valid = False
+                        bad += 1
+                        print("Bad no-jump timing: line " + str(i) + " should be " + str(current_timing["t1"]))
+                        if fix:
+                            print("fixing...")
+                            ln = re.match(r"(\s*(Instruction i|i)\s*\=\s*\{\s*)\d+\s*,\s*\d+(.*)", line)
+                            if ln != None:
+                                lines[key] = ln.group(1)
+                                lines[key] += str(current_timing["t1"])
+                                lines[key] += ", " + str(jump)
+                                lines[key] += ln.group(3) + "\n"
+                else:
+                    valid = False
+                    bad += 1
+                    print("Bad no-jump timing: line " + str(i) + " should be " + str(current_timing["t1"]))
+                    if fix:
+                        print("fixing...")
+                        ln = re.match(r"(\s*(Instruction i|i)\s*\=\s*\{\s*)\d+\s*,\s*\d+(.*)", line)
+                        if ln != None:
+                            lines[key] = ln.group(1)
+                            lines[key] += str(current_timing["t1"])
+                            lines[key] += ", " + str(jump)
+                            lines[key] += ln.group(3) + "\n"
+        i += 1
+    if valid:
+        print("All T-state timing values correct.")
+    else:
+        print(str(bad) + " errors in timing values.")
 
 def validate_operands(lines, timings):
     ''' Validate operand size and order '''
     pass
+
+def add_info(lines):
+    ''' Add informative comment about the generated file and the whole process '''
+    info = [
+        "/*\n",
+        "    This file was automatically generated from a file that was manually generated\n",
+        "    by an idiot programmer. If you are looking for inspiration on your own ZX Spectrum\n",
+        "    emulator, don't do this, that was a bad idea (the manual writing of all opcode variations).\n",
+        "\n",
+        "    More information in instructions_preprocess.py and the original file instructions.cpp.orig\n",
+        "*/\n",
+        "\n",
+    ]
+    return info + lines
 
 def main():
     lines = []
@@ -271,16 +349,24 @@ def main():
     with open(sys.argv[1]) as file:
         lines = file.readlines()
 
+
     with open("timings.txt") as file:
         timings_lines = file.readlines()
     timings = parse_timing(timings_lines)
-    add_timing(lines, timings)
+    if "--fix" in sys.argv:
+        validate_timing(lines, timings, fix=True)
+        with open(sys.argv[1], "w") as file:
+            file.writelines(lines)
+    else:
+        add_timing(lines, timings)
+        validate_timing(lines, timings)
 
-    process(lines)
+        process(lines)
+        lines = add_info(lines)
 
-    with open(sys.argv[1] + ".new", "w") as file:
-        file.writelines(lines)
-    validate(lines)
+        with open(sys.argv[1] + ".new", "w") as file:
+            file.writelines(lines)
+        validate(lines)
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,11 @@
+/*
+    This file was automatically generated from a file that was manually generated
+    by an idiot programmer. If you are looking for inspiration on your own ZX Spectrum
+    emulator, don't do this, that was a bad idea (the manual writing of all opcode variations).
+
+    More information in instructions_preprocess.py and the original file instructions.cpp.orig
+*/
+
 #include "instructions.h"
 
 #include "utils.h"
@@ -299,7 +307,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR d
     oc = 24;
-    i = { 7, 12, 1, INST{
+    i = { 12, 12, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
         },
@@ -421,7 +429,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (nn),HL
     oc = 34;
-    i = { 20, 20, 2, INST{
+    i = { 16, 16, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->HL.bytes.low;
             (*m)[nn+1] = z->getRegisters()->HL.bytes.high;
@@ -519,7 +527,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD HL,(nn)
     oc = 42;
-    i = { 20, 20, 2, INST{
+    i = { 16, 16, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             uint16_t in = CREATE_WORD((*m)[nn], (*m)[nn+1]);
             z->getRegisters()->HL.word = in;
@@ -3016,7 +3024,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // NOP
     oc = 256;
-    i = { 4, 4, 0, INST{ ; },
+    i = { 8, 8, 0, INST{ ; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3024,7 +3032,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD BC,nn
     oc = 257;
-    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -3032,7 +3040,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (BC),A
     oc = 258;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             (*m)[z->getRegisters()->BC.word] = z->getRegisters()->AF.bytes.high;
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -3043,7 +3051,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC BC
     oc = 259;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, 1, r, INC16);
         },
@@ -3055,7 +3063,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC B
     oc = 260;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x7F) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, 1, r, INC8);
@@ -3069,7 +3077,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC B
     oc = 261;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x80) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, DEC8);
@@ -3083,7 +3091,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,n
     oc = 262;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3091,7 +3099,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RLCA
     oc = 263;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = (bool)((r->AF.bytes.high >> 7) & 0x01);
             r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
@@ -3106,7 +3114,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EX AF, AF'
     oc = 264;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->AFx.word;
             r->AFx.word = r->AF.word;
@@ -3134,7 +3142,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(BC)
     oc = 266;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -3145,7 +3153,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC BC
     oc = 267;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, DEC16);
         },
@@ -3157,7 +3165,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC C
     oc = 268;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x7F) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, 1, r, INC8);
@@ -3171,7 +3179,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC C
     oc = 269;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x80) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, -1, r, DEC8);
@@ -3185,7 +3193,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,n
     oc = 270;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3193,7 +3201,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RRCA
     oc = 271;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = (bool)((r->AF.bytes.high) & 0x01);
             r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
@@ -3208,7 +3216,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DJNZ d
     oc = 272;
-    i = { 8, 13, 1, INST{
+    i = { 12, 17, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             if (r->BC.bytes.high != 0)
@@ -3224,7 +3232,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD DE,nn
     oc = 273;
-    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -3232,7 +3240,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (DE),A
     oc = 274;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             (*m)[z->getRegisters()->DE.word] = z->getRegisters()->AF.bytes.high;
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -3243,7 +3251,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC DE
     oc = 275;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, 1, r, INC16);
         },
@@ -3255,7 +3263,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC D
     oc = 276;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x7F) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, 1, r, INC8);
@@ -3269,7 +3277,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC D
     oc = 277;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x80) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, -1, r, DEC8);
@@ -3283,7 +3291,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,n
     oc = 278;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3291,7 +3299,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RLA
     oc = 279;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = rolc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
@@ -3305,7 +3313,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR d
     oc = 280;
-    i = { 7, 12, 1, INST{
+    i = { 16, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
         },
@@ -3331,7 +3339,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(DE)
     oc = 282;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -3342,7 +3350,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC DE
     oc = 283;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, DEC16);
         },
@@ -3354,7 +3362,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC E
     oc = 284;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x7F) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, 1, r, INC8);
@@ -3368,7 +3376,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC E
     oc = 285;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x80) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, -1, r, DEC8);
@@ -3382,7 +3390,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,n
     oc = 286;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3390,7 +3398,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RRA
     oc = 287;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = rorc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
@@ -3404,7 +3412,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR NZ,d
     oc = 288;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == false)
             {
@@ -3452,7 +3460,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC IXH
     oc = 292;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IX.bytes.high == 0x7F) ? true : false;
             r->IX.bytes.high = add<uint8_t>(r->IX.bytes.high, 1, r, INC8);
@@ -3466,7 +3474,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC IXH
     oc = 293;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IX.bytes.high == 0x80) ? true : false;
             r->IX.bytes.high = add<uint8_t>(r->IX.bytes.high, -1, r, DEC8);
@@ -3480,7 +3488,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,n
     oc = 294;
-    i = { 9, 9, 1, INST{ z->getRegisters()->IX.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->IX.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3488,7 +3496,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DAA
     oc = 295;
-    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
+    i = { 8, 8, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3496,7 +3504,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR Z,d
     oc = 296;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == true)
             {
@@ -3550,7 +3558,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC IXL
     oc = 300;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IX.bytes.low == 0x7F) ? true : false;
             r->IX.bytes.low = add<uint8_t>(r->IX.bytes.low, 1, r, INC8);
@@ -3564,7 +3572,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC IXL
     oc = 301;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IX.bytes.low == 0x80) ? true : false;
             r->IX.bytes.low = add<uint8_t>(r->IX.bytes.low, -1, r, DEC8);
@@ -3578,7 +3586,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,n
     oc = 302;
-    i = { 7, 7, 1, INST{ z->getRegisters()->IX.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->IX.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3586,7 +3594,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CPL
     oc = 303;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = ~(r->AF.bytes.high);
             r->AF.bytes.low.HF = true;
@@ -3600,7 +3608,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR NC,d
     oc = 304;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == false)
             {
@@ -3615,7 +3623,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD SP,nn
     oc = 305;
-    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -3623,7 +3631,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (nn),A
     oc = 306;
-    i = { 13, 13, 2, INST{
+    i = { 17, 17, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->AF.bytes.high;
         },
@@ -3635,7 +3643,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC SP
     oc = 307;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, 1, r, INC16);
         },
@@ -3679,7 +3687,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (IX+d),n
     oc = 310;
-    i = { 19, 19, 2, INST{
+    i = { 23, 23, 2, INST{
             (*m)[z->getRegisters()->IX.word+((int8_t)d[0])] = d[1];
         },
         6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
@@ -3690,7 +3698,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SCF
     oc = 311;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             z->getRegisters()->AF.bytes.low.CF = true;
             z->getRegisters()->AF.bytes.low.NF = false;
             z->getRegisters()->AF.bytes.low.HF = false;
@@ -3703,7 +3711,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR C,d
     oc = 312;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == true)
             {
@@ -3718,7 +3726,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD IX,SP
     oc = 313;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IX.word = add(r->IX.word, r->SP, r, ADD16);
             setUndocumentedFlags(r->IX.word, r);
@@ -3732,7 +3740,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(nn)
     oc = 314;
-    i = { 13, 13, 2, INST{
+    i = { 17, 17, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
         },
@@ -3744,7 +3752,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC SP
     oc = 315;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
         },
@@ -3756,7 +3764,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC A
     oc = 316;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
@@ -3770,7 +3778,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC A
     oc = 317;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
@@ -3784,7 +3792,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,n
     oc = 318;
-    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -3792,7 +3800,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CCF
     oc = 319;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             bool prevCarry = r->AF.bytes.low.CF;
             r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
@@ -3807,7 +3815,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,B
     oc = 320;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
    };
@@ -3815,7 +3823,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,C
     oc = 321;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3823,7 +3831,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,D
     oc = 322;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3831,7 +3839,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,E
     oc = 323;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3839,7 +3847,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,IXH
     oc = 324;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3847,7 +3855,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,IXL
     oc = 325;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3866,7 +3874,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,A
     oc = 327;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3874,7 +3882,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,B
     oc = 328;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3882,7 +3890,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,C
     oc = 329;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3890,7 +3898,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,D
     oc = 330;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3898,7 +3906,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,E
     oc = 331;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3906,7 +3914,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,IXH
     oc = 332;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3914,7 +3922,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,IXL
     oc = 333;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3922,7 +3930,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,(IX+d)
     oc = 334;
-    i = { 7, 7, 1, INST{
+    i = { 19, 19, 1, INST{
             z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->IX.word+((int8_t)d[0])];
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -3933,7 +3941,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,A
     oc = 335;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3941,7 +3949,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,B
     oc = 336;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3949,7 +3957,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,C
     oc = 337;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3957,7 +3965,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,D
     oc = 338;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3965,7 +3973,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,E
     oc = 339;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3973,7 +3981,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,IXH
     oc = 340;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -3981,7 +3989,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,IXL
     oc = 341;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4000,7 +4008,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,A
     oc = 343;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4008,7 +4016,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,B
     oc = 344;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4016,7 +4024,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,C
     oc = 345;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4024,7 +4032,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,D
     oc = 346;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4032,7 +4040,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,E
     oc = 347;
-    i = { 4, 4, 0, INST{; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4040,7 +4048,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,IXH
     oc = 348;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4048,7 +4056,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,IXL
     oc = 349;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4067,7 +4075,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,A
     oc = 351;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4075,7 +4083,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,B
     oc = 352;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4083,7 +4091,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,C
     oc = 353;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4091,7 +4099,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,D
     oc = 354;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4099,7 +4107,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,E
     oc = 355;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4107,7 +4115,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,IXH
     oc = 356;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4115,7 +4123,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,IXL
     oc = 357;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4134,7 +4142,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXH,A
     oc = 359;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4142,7 +4150,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,B
     oc = 360;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4150,7 +4158,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,C
     oc = 361;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4158,7 +4166,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,D
     oc = 362;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4166,7 +4174,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,E
     oc = 363;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4174,7 +4182,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,H
     oc = 364;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->HL.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->HL.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4182,7 +4190,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,IXL
     oc = 365;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4201,7 +4209,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IXL,A
     oc = 367;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IX.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4275,7 +4283,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // HALT
     oc = 374;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             z->halt();
         },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -4297,7 +4305,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,B
     oc = 376;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4305,7 +4313,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,C
     oc = 377;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4313,7 +4321,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,D
     oc = 378;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4321,7 +4329,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,E
     oc = 379;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4329,7 +4337,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,IXH
     oc = 380;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4337,7 +4345,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,IXL
     oc = 381;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IX.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4356,7 +4364,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,A
     oc = 383;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -4364,7 +4372,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,B
     oc = 384;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4377,7 +4385,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,C
     oc = 385;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4390,7 +4398,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,D
     oc = 386;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4403,7 +4411,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,E
     oc = 387;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4416,7 +4424,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,IXH
     oc = 388;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4429,7 +4437,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,IXL
     oc = 389;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4455,7 +4463,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,A
     oc = 391;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -4468,7 +4476,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,B
     oc = 392;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4481,7 +4489,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,C
     oc = 393;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4494,7 +4502,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,D
     oc = 394;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4507,7 +4515,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,E
     oc = 395;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4520,7 +4528,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,IXH
     oc = 396;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4533,7 +4541,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,IXL
     oc = 397;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IX.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4559,7 +4567,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,A
     oc = 399;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -4572,7 +4580,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB B
     oc = 400;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4585,7 +4593,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB C
     oc = 401;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4598,7 +4606,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB D
     oc = 402;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4611,7 +4619,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB E
     oc = 403;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4624,7 +4632,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB IXH
     oc = 404;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4637,7 +4645,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB IXL
     oc = 405;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4663,7 +4671,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB A
     oc = 407;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -4676,7 +4684,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,B
     oc = 408;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4689,7 +4697,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,C
     oc = 409;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4702,7 +4710,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,D
     oc = 410;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4715,7 +4723,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,E
     oc = 411;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4728,7 +4736,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,IXH
     oc = 412;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4741,7 +4749,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,IXL
     oc = 413;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4767,7 +4775,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,A
     oc = 415;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -4780,7 +4788,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND B
     oc = 416;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -4792,7 +4800,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND C
     oc = 417;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -4804,7 +4812,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND D
     oc = 418;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -4816,7 +4824,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND E
     oc = 419;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -4828,7 +4836,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND IXH
     oc = 420;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IX.bytes.high, r);
         },
@@ -4840,7 +4848,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND IXL
     oc = 421;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IX.bytes.low, r);
         },
@@ -4864,7 +4872,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND A
     oc = 423;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -4876,7 +4884,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR B
     oc = 424;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -4888,7 +4896,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR C
     oc = 425;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -4900,7 +4908,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR D
     oc = 426;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -4912,7 +4920,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR E
     oc = 427;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -4924,7 +4932,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR IXH
     oc = 428;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IX.bytes.high, r);
         },
@@ -4936,7 +4944,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR IXL
     oc = 429;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IX.bytes.low, r);
         },
@@ -4960,7 +4968,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR A
     oc = 431;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -4972,7 +4980,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR B
     oc = 432;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -4984,7 +4992,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR C
     oc = 433;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -4996,7 +5004,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR D
     oc = 434;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -5008,7 +5016,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR E
     oc = 435;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -5020,7 +5028,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR IXH
     oc = 436;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IX.bytes.high, r);
         },
@@ -5032,7 +5040,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR IXL
     oc = 437;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IX.bytes.low, r);
         },
@@ -5056,7 +5064,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR A
     oc = 439;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -5068,7 +5076,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP B
     oc = 440;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5081,7 +5089,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP C
     oc = 441;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5094,7 +5102,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP D
     oc = 442;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5107,7 +5115,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP E
     oc = 443;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5120,7 +5128,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP IXH
     oc = 444;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5133,7 +5141,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP IXL
     oc = 445;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IX.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5159,7 +5167,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP A
     oc = 447;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5172,7 +5180,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET NZ
     oc = 448;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NZ);
         },
@@ -5184,7 +5192,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP BC
     oc = 449;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -5197,7 +5205,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP NZ,nn
     oc = 450;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.ZF))
@@ -5213,7 +5221,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP nn
     oc = 451;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->PC = nn;
@@ -5226,7 +5234,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL NZ,nn
     oc = 452;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NZ, nn);
@@ -5239,7 +5247,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH BC
     oc = 453;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->BC.bytes.high;
@@ -5254,7 +5262,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,n
     oc = 454;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -5267,7 +5275,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 00
     oc = 455;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5283,7 +5291,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET Z
     oc = 456;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::Z);
         },
@@ -5295,7 +5303,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET
     oc = 457;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->PC = 0 | (*m)[r->SP];
             r->SP++;
@@ -5310,7 +5318,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP Z,nn
     oc = 458;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.ZF)
@@ -5328,7 +5336,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL Z,nn
     oc = 460;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::Z, nn);
@@ -5341,7 +5349,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL nn
     oc = 461;
-    i = { 17, 17, 2, INST{
+    i = { 21, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->SP--;
@@ -5358,7 +5366,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,n
     oc = 462;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -5371,7 +5379,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 08
     oc = 463;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5387,7 +5395,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET NC
     oc = 464;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NC);
         },
@@ -5399,7 +5407,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP DE
     oc = 465;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -5412,7 +5420,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP NC,nn
     oc = 466;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.CF))
@@ -5428,7 +5436,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OUT (n),A
     oc = 467;
-    i = { 11, 11, 1, INST{
+    i = { 15, 15, 1, INST{
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
@@ -5441,7 +5449,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL NC,nn
     oc = 468;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NC, nn);
@@ -5454,7 +5462,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH DE
     oc = 469;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->DE.bytes.high;
@@ -5469,7 +5477,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB n
     oc = 470;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -5482,7 +5490,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 10
     oc = 471;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5498,7 +5506,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET C
     oc = 472;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::C);
         },
@@ -5510,7 +5518,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EXX
     oc = 473;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->BC.word;
             r->BC.word = r->BCx.word;
@@ -5530,7 +5538,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP C,nn
     oc = 474;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.CF)
@@ -5546,7 +5554,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // IN A,(n)
     oc = 475;
-    i = { 11, 11, 1, INST{
+    i = { 15, 15, 1, INST{
             Z80Registers* r = z->getRegisters();
             // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
@@ -5559,7 +5567,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL C,nn
     oc = 476;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::C, nn);
@@ -5574,7 +5582,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,n
     oc = 478;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -5587,7 +5595,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 18
     oc = 479;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5603,7 +5611,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET PO
     oc = 480;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PO);
         },
@@ -5628,7 +5636,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP PO,nn
     oc = 482;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.PF))
@@ -5661,7 +5669,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL PO,nn
     oc = 484;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PO, nn);
@@ -5689,7 +5697,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND n
     oc = 486;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, d[0], r);
         },
@@ -5701,7 +5709,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 20
     oc = 487;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5717,7 +5725,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET PE
     oc = 488;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PE);
         },
@@ -5741,7 +5749,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP PE,nn
     oc = 490;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.PF)
@@ -5757,7 +5765,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EX DE,HL
     oc = 491;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->DE.word;
             r->DE.word = r->HL.word;
@@ -5771,7 +5779,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL PE,nn
     oc = 492;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PE, nn);
@@ -5786,7 +5794,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR n
     oc = 494;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, d[0], r);
         },
@@ -5798,7 +5806,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 28
     oc = 495;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5814,7 +5822,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET P
     oc = 496;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::P);
         },
@@ -5826,7 +5834,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP AF
     oc = 497;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -5839,7 +5847,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP P,nn
     oc = 498;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.SF))
@@ -5855,7 +5863,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DI
     oc = 499;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
@@ -5868,7 +5876,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL P,nn
     oc = 500;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::P, nn);
@@ -5881,7 +5889,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH AF
     oc = 501;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->AF.bytes.high;
@@ -5896,7 +5904,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR n
     oc = 502;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, d[0], r);
         },
@@ -5908,7 +5916,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 30
     oc = 503;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -5924,7 +5932,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET M
     oc = 504;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::M);
         },
@@ -5948,7 +5956,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP M,nn
     oc = 506;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.SF)
@@ -5964,7 +5972,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EI
     oc = 507;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
@@ -5977,7 +5985,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL M,nn
     oc = 508;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::M, nn);
@@ -5992,7 +6000,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP n
     oc = 510;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -6005,7 +6013,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 38
     oc = 511;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -6021,7 +6029,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // NOP
     oc = 512;
-    i = { 4, 4, 0, INST{ ; },
+    i = { 8, 8, 0, INST{ ; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6029,7 +6037,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD BC,nn
     oc = 513;
-    i = { 10, 10, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->BC.word = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -6037,7 +6045,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (BC),A
     oc = 514;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             (*m)[z->getRegisters()->BC.word] = z->getRegisters()->AF.bytes.high;
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -6048,7 +6056,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC BC
     oc = 515;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, 1, r, INC16);
         },
@@ -6060,7 +6068,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC B
     oc = 516;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x7F) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, 1, r, INC8);
@@ -6074,7 +6082,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC B
     oc = 517;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.high == 0x80) ? true : false;
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, DEC8);
@@ -6088,7 +6096,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,n
     oc = 518;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->BC.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6096,7 +6104,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RLCA
     oc = 519;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = (bool)((r->AF.bytes.high >> 7) & 0x01);
             r->AF.bytes.high = rol<uint8_t>(r->AF.bytes.high);
@@ -6111,7 +6119,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EX AF, AF'
     oc = 520;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->AFx.word;
             r->AFx.word = r->AF.word;
@@ -6139,7 +6147,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(BC)
     oc = 522;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->BC.word];
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -6150,7 +6158,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC BC
     oc = 523;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, DEC16);
         },
@@ -6162,7 +6170,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC C
     oc = 524;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x7F) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, 1, r, INC8);
@@ -6176,7 +6184,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC C
     oc = 525;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->BC.bytes.low == 0x80) ? true : false;
             r->BC.bytes.low = add<uint8_t>(r->BC.bytes.low, -1, r, DEC8);
@@ -6190,7 +6198,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,n
     oc = 526;
-    i = { 7, 7, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->BC.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6198,7 +6206,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RRCA
     oc = 527;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = (bool)((r->AF.bytes.high) & 0x01);
             r->AF.bytes.high = ror<uint8_t>(r->AF.bytes.high);
@@ -6213,7 +6221,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DJNZ d
     oc = 528;
-    i = { 8, 13, 1, INST{
+    i = { 12, 17, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
             if (r->BC.bytes.high != 0)
@@ -6229,7 +6237,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD DE,nn
     oc = 529;
-    i = { 10, 10, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->DE.word = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -6237,7 +6245,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (DE),A
     oc = 530;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             (*m)[z->getRegisters()->DE.word] = z->getRegisters()->AF.bytes.high;
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MWR, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -6248,7 +6256,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC DE
     oc = 531;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, 1, r, INC16);
         },
@@ -6260,7 +6268,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC D
     oc = 532;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x7F) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, 1, r, INC8);
@@ -6274,7 +6282,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC D
     oc = 533;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.high == 0x80) ? true : false;
             r->DE.bytes.high = add<uint8_t>(r->DE.bytes.high, -1, r, DEC8);
@@ -6288,7 +6296,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,n
     oc = 534;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->DE.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6296,7 +6304,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RLA
     oc = 535;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = rolc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
@@ -6310,7 +6318,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR d
     oc = 536;
-    i = { 7, 12, 1, INST{
+    i = { 0, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->PC += (int8_t) d[0];
         },
@@ -6336,7 +6344,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(DE)
     oc = 538;
-    i = { 7, 7, 0, INST{
+    i = { 11, 11, 0, INST{
             z->getRegisters()->AF.bytes.high = (*m)[z->getRegisters()->DE.word];
         },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -6347,7 +6355,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC DE
     oc = 539;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, DEC16);
         },
@@ -6359,7 +6367,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC E
     oc = 540;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x7F) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, 1, r, INC8);
@@ -6373,7 +6381,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC E
     oc = 541;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->DE.bytes.low == 0x80) ? true : false;
             r->DE.bytes.low = add<uint8_t>(r->DE.bytes.low, -1, r, DEC8);
@@ -6387,7 +6395,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,n
     oc = 542;
-    i = { 7, 7, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->DE.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6395,7 +6403,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RRA
     oc = 543;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.CF = rorc(r->AF.bytes.high, r->AF.bytes.low.CF);
             r->AF.bytes.low.HF = false;
@@ -6409,7 +6417,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR NZ,d
     oc = 544;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == false)
             {
@@ -6457,7 +6465,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC IYH
     oc = 548;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IY.bytes.high == 0x7F) ? true : false;
             r->IY.bytes.high = add<uint8_t>(r->IY.bytes.high, 1, r, INC8);
@@ -6471,7 +6479,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC IYH
     oc = 549;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IY.bytes.high == 0x80) ? true : false;
             r->IY.bytes.high = add<uint8_t>(r->IY.bytes.high, -1, r, DEC8);
@@ -6485,7 +6493,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,n
     oc = 550;
-    i = { 9, 9, 1, INST{ z->getRegisters()->IY.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->IY.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6493,7 +6501,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DAA
     oc = 551;
-    i = { 4, 4, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
+    i = { 8, 8, 0, INST{ Z80Registers* r = z->getRegisters(); daa(r); },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6501,7 +6509,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR Z,d
     oc = 552;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.ZF == true)
             {
@@ -6555,7 +6563,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC IYL
     oc = 556;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IY.bytes.low == 0x7F) ? true : false;
             r->IY.bytes.low = add<uint8_t>(r->IY.bytes.low, 1, r, INC8);
@@ -6569,7 +6577,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC IYL
     oc = 557;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->IY.bytes.low == 0x80) ? true : false;
             r->IY.bytes.low = add<uint8_t>(r->IY.bytes.low, -1, r, DEC8);
@@ -6583,7 +6591,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,n
     oc = 558;
-    i = { 7, 7, 1, INST{ z->getRegisters()->IY.bytes.low = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->IY.bytes.low = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6591,7 +6599,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CPL
     oc = 559;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = ~(r->AF.bytes.high);
             r->AF.bytes.low.HF = true;
@@ -6605,7 +6613,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR NC,d
     oc = 560;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == false)
             {
@@ -6620,7 +6628,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD SP,nn
     oc = 561;
-    i = { 10, 10, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
+    i = { 14, 14, 2, INST{ z->getRegisters()->SP = CREATE_WORD(d[0], d[1]); },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 3, 0, 0, 0 }
     };
@@ -6628,7 +6636,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (nn),A
     oc = 562;
-    i = { 13, 13, 2, INST{
+    i = { 17, 17, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             (*m)[nn] = z->getRegisters()->AF.bytes.high;
         },
@@ -6640,7 +6648,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC SP
     oc = 563;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, 1, r, INC16);
         },
@@ -6684,7 +6692,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD (IY+d),n
     oc = 566;
-    i = { 19, 19, 2, INST{
+    i = { 23, 23, 2, INST{
             (*m)[z->getRegisters()->IY.word+((int8_t)d[0])] = d[1];
         },
         6, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::MWR, MachineCycleType::UNUSED },
@@ -6695,7 +6703,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SCF
     oc = 567;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             z->getRegisters()->AF.bytes.low.CF = true;
             z->getRegisters()->AF.bytes.low.NF = false;
             z->getRegisters()->AF.bytes.low.HF = false;
@@ -6708,7 +6716,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JR C,d
     oc = 568;
-    i = { 7, 12, 1, INST{
+    i = { 11, 16, 1, INST{
             Z80Registers* r = z->getRegisters();
             if (r->AF.bytes.low.CF == true)
             {
@@ -6723,7 +6731,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD IY,SP
     oc = 569;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->IY.word = add(r->IY.word, r->SP, r, ADD16);
             setUndocumentedFlags(r->IY.word, r);
@@ -6737,7 +6745,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,(nn)
     oc = 570;
-    i = { 13, 13, 2, INST{
+    i = { 17, 17, 2, INST{
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             z->getRegisters()->AF.bytes.high = (*m)[nn];
         },
@@ -6749,7 +6757,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC SP
     oc = 571;
-    i = { 6, 6, 0, INST{
+    i = { 10, 10, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP = add<uint16_t>(r->SP, -1, r, DEC16);
         },
@@ -6761,7 +6769,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // INC A
     oc = 572;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x7F) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, 1, r, INC8);
@@ -6775,7 +6783,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DEC A
     oc = 573;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.low.PF = (r->AF.bytes.high == 0x80) ? true : false;
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -1, r, DEC8);
@@ -6789,7 +6797,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,n
     oc = 574;
-    i = { 7, 7, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
+    i = { 11, 11, 1, INST{ z->getRegisters()->AF.bytes.high = d[0]; },
         3, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 0, 0, 0, 0 }
     };
@@ -6797,7 +6805,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CCF
     oc = 575;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             bool prevCarry = r->AF.bytes.low.CF;
             r->AF.bytes.low.CF = (r->AF.bytes.low.CF) ? false : true;
@@ -6812,7 +6820,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,B
     oc = 576;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
    };
@@ -6820,7 +6828,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,C
     oc = 577;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6828,7 +6836,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,D
     oc = 578;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6836,7 +6844,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,E
     oc = 579;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6844,7 +6852,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,IYH
     oc = 580;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6852,7 +6860,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,IYL
     oc = 581;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6871,7 +6879,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD B,A
     oc = 583;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6879,7 +6887,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,B
     oc = 584;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6887,7 +6895,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,C
     oc = 585;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6895,7 +6903,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,D
     oc = 586;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6903,7 +6911,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,E
     oc = 587;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6911,7 +6919,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,IYH
     oc = 588;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6919,7 +6927,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,IYL
     oc = 589;
-    i = { 9, 9, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6927,7 +6935,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,(IY+d)
     oc = 590;
-    i = { 7, 7, 1, INST{
+    i = { 19, 19, 1, INST{
             z->getRegisters()->BC.bytes.low = (*m)[z->getRegisters()->IY.word+((int8_t)d[0])];
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::NON, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -6938,7 +6946,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD C,A
     oc = 591;
-    i = { 4, 4, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->BC.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6946,7 +6954,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,B
     oc = 592;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6954,7 +6962,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,C
     oc = 593;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6962,7 +6970,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,D
     oc = 594;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6970,7 +6978,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,E
     oc = 595;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6978,7 +6986,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,IYH
     oc = 596;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -6986,7 +6994,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,IYL
     oc = 597;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7005,7 +7013,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD D,A
     oc = 599;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7013,7 +7021,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,B
     oc = 600;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7021,7 +7029,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,C
     oc = 601;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7029,7 +7037,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,D
     oc = 602;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7037,7 +7045,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,E
     oc = 603;
-    i = { 4, 4, 0, INST{; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7045,7 +7053,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,IYH
     oc = 604;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7053,7 +7061,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,IYL
     oc = 605;
-    i = { 9, 9, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7072,7 +7080,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD E,A
     oc = 607;
-    i = { 4, 4, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->DE.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7080,7 +7088,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,B
     oc = 608;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7088,7 +7096,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,C
     oc = 609;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7096,7 +7104,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,D
     oc = 610;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7104,7 +7112,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,E
     oc = 611;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7112,7 +7120,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,IYH
     oc = 612;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7120,7 +7128,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,IYL
     oc = 613;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7139,7 +7147,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYH,A
     oc = 615;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.high = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7147,7 +7155,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,B
     oc = 616;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7155,7 +7163,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,C
     oc = 617;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7163,7 +7171,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,D
     oc = 618;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7171,7 +7179,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,E
     oc = 619;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7179,7 +7187,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,H
     oc = 620;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->HL.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->HL.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7187,7 +7195,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,IYL
     oc = 621;
-    i = { 9, 9, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7206,7 +7214,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD IYL,A
     oc = 623;
-    i = { 9, 9, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->AF.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->IY.bytes.low = z->getRegisters()->AF.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7280,7 +7288,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // HALT
     oc = 630;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             z->halt();
         },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -7302,7 +7310,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,B
     oc = 632;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7310,7 +7318,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,C
     oc = 633;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->BC.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7318,7 +7326,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,D
     oc = 634;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7326,7 +7334,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,E
     oc = 635;
-    i = { 4, 4, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->DE.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7334,7 +7342,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,IYH
     oc = 636;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.high; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.high; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7342,7 +7350,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,IYL
     oc = 637;
-    i = { 9, 9, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.low; },
+    i = { 8, 8, 0, INST{ z->getRegisters()->AF.bytes.high = z->getRegisters()->IY.bytes.low; },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7361,7 +7369,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LD A,A
     oc = 639;
-    i = { 4, 4, 0, INST{ ; /* Practically a NOP */ },
+    i = { 8, 8, 0, INST{ ; /* Practically a NOP */ },
         2, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 0, 0, 0, 0, 0 }
     };
@@ -7369,7 +7377,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,B
     oc = 640;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7382,7 +7390,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,C
     oc = 641;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7395,7 +7403,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,D
     oc = 642;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7408,7 +7416,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,E
     oc = 643;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7421,7 +7429,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,IYH
     oc = 644;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7434,7 +7442,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,IYL
     oc = 645;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.low, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7460,7 +7468,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,A
     oc = 647;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -7473,7 +7481,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,B
     oc = 648;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7486,7 +7494,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,C
     oc = 649;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->BC.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7499,7 +7507,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,D
     oc = 650;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7512,7 +7520,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,E
     oc = 651;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->DE.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7525,7 +7533,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,IYH
     oc = 652;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7538,7 +7546,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,IYL
     oc = 653;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->IY.bytes.low, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7564,7 +7572,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,A
     oc = 655;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, r->AF.bytes.high, r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -7577,7 +7585,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB B
     oc = 656;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7590,7 +7598,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB C
     oc = 657;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7603,7 +7611,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB D
     oc = 658;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7616,7 +7624,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB E
     oc = 659;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7629,7 +7637,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB IYH
     oc = 660;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7642,7 +7650,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB IYL
     oc = 661;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7668,7 +7676,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB A
     oc = 663;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -7681,7 +7689,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,B
     oc = 664;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7694,7 +7702,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,C
     oc = 665;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7707,7 +7715,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,D
     oc = 666;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7720,7 +7728,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,E
     oc = 667;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7733,7 +7741,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,IYH
     oc = 668;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7746,7 +7754,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,IYL
     oc = 669;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7772,7 +7780,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,A
     oc = 671;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -7785,7 +7793,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND B
     oc = 672;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -7797,7 +7805,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND C
     oc = 673;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -7809,7 +7817,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND D
     oc = 674;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -7821,7 +7829,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND E
     oc = 675;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -7833,7 +7841,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND IYH
     oc = 676;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IY.bytes.high, r);
         },
@@ -7845,7 +7853,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND IYL
     oc = 677;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->IY.bytes.low, r);
         },
@@ -7869,7 +7877,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND A
     oc = 679;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -7881,7 +7889,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR B
     oc = 680;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -7893,7 +7901,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR C
     oc = 681;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -7905,7 +7913,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR D
     oc = 682;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -7917,7 +7925,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR E
     oc = 683;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -7929,7 +7937,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR IYH
     oc = 684;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IY.bytes.high, r);
         },
@@ -7941,7 +7949,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR IYL
     oc = 685;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->IY.bytes.low, r);
         },
@@ -7965,7 +7973,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR A
     oc = 687;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -7977,7 +7985,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR B
     oc = 688;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.high, r);
         },
@@ -7989,7 +7997,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR C
     oc = 689;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->BC.bytes.low, r);
         },
@@ -8001,7 +8009,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR D
     oc = 690;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.high, r);
         },
@@ -8013,7 +8021,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR E
     oc = 691;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->DE.bytes.low, r);
         },
@@ -8025,7 +8033,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR IYH
     oc = 692;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IY.bytes.high, r);
         },
@@ -8037,7 +8045,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR IYL
     oc = 693;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->IY.bytes.low, r);
         },
@@ -8061,7 +8069,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR A
     oc = 695;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, r->AF.bytes.high, r);
         },
@@ -8073,7 +8081,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP B
     oc = 696;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8086,7 +8094,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP C
     oc = 697;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->BC.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8099,7 +8107,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP D
     oc = 698;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8112,7 +8120,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP E
     oc = 699;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->DE.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8125,7 +8133,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP IYH
     oc = 700;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8138,7 +8146,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP IYL
     oc = 701;
-    i = { 9, 9, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->IY.bytes.low), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8164,7 +8172,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP A
     oc = 703;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(r->AF.bytes.high), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8177,7 +8185,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET NZ
     oc = 704;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NZ);
         },
@@ -8189,7 +8197,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP BC
     oc = 705;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->BC.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -8202,7 +8210,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP NZ,nn
     oc = 706;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.ZF))
@@ -8218,7 +8226,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP nn
     oc = 707;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->PC = nn;
@@ -8231,7 +8239,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL NZ,nn
     oc = 708;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NZ, nn);
@@ -8244,7 +8252,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH BC
     oc = 709;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->BC.bytes.high;
@@ -8259,7 +8267,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADD A,n
     oc = 710;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8);
             r->AF.bytes.low.NF = 0;
@@ -8272,7 +8280,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 00
     oc = 711;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8288,7 +8296,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET Z
     oc = 712;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::Z);
         },
@@ -8300,7 +8308,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET
     oc = 713;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->PC = 0 | (*m)[r->SP];
             r->SP++;
@@ -8315,7 +8323,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP Z,nn
     oc = 714;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.ZF)
@@ -8333,7 +8341,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL Z,nn
     oc = 716;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::Z, nn);
@@ -8346,7 +8354,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL nn
     oc = 717;
-    i = { 17, 17, 2, INST{
+    i = { 21, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             r->SP--;
@@ -8363,7 +8371,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // ADC A,n
     oc = 718;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add(r->AF.bytes.high, d[0], r, ADD8, true);
             r->AF.bytes.low.NF = 0;
@@ -8376,7 +8384,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 08
     oc = 719;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8392,7 +8400,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET NC
     oc = 720;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::NC);
         },
@@ -8404,7 +8412,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP DE
     oc = 721;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->DE.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -8417,7 +8425,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP NC,nn
     oc = 722;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.CF))
@@ -8433,7 +8441,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OUT (n),A
     oc = 723;
-    i = { 11, 11, 1, INST{
+    i = { 15, 15, 1, INST{
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
@@ -8446,7 +8454,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL NC,nn
     oc = 724;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::NC, nn);
@@ -8459,7 +8467,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH DE
     oc = 725;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->DE.bytes.high;
@@ -8474,7 +8482,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SUB n
     oc = 726;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -8487,7 +8495,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 10
     oc = 727;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8503,7 +8511,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET C
     oc = 728;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::C);
         },
@@ -8515,7 +8523,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EXX
     oc = 729;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->BC.word;
             r->BC.word = r->BCx.word;
@@ -8535,7 +8543,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP C,nn
     oc = 730;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.CF)
@@ -8551,7 +8559,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // IN A,(n)
     oc = 731;
-    i = { 11, 11, 1, INST{
+    i = { 15, 15, 1, INST{
             Z80Registers* r = z->getRegisters();
             // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
@@ -8564,7 +8572,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL C,nn
     oc = 732;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::C, nn);
@@ -8579,7 +8587,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // SBC A,n
     oc = 734;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8, false, true);
             r->AF.bytes.low.NF = 1;
@@ -8592,7 +8600,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 18
     oc = 735;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8608,7 +8616,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET PO
     oc = 736;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PO);
         },
@@ -8633,7 +8641,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP PO,nn
     oc = 738;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.PF))
@@ -8666,7 +8674,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL PO,nn
     oc = 740;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PO, nn);
@@ -8694,7 +8702,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // AND n
     oc = 742;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = and(r->AF.bytes.high, d[0], r);
         },
@@ -8706,7 +8714,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 20
     oc = 743;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8722,7 +8730,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET PE
     oc = 744;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::PE);
         },
@@ -8746,7 +8754,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP PE,nn
     oc = 746;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.PF)
@@ -8762,7 +8770,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EX DE,HL
     oc = 747;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t tmp = r->DE.word;
             r->DE.word = r->HL.word;
@@ -8776,7 +8784,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL PE,nn
     oc = 748;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::PE, nn);
@@ -8791,7 +8799,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // XOR n
     oc = 750;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = xor(r->AF.bytes.high, d[0], r);
         },
@@ -8803,7 +8811,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 28
     oc = 751;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8819,7 +8827,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET P
     oc = 752;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::P);
         },
@@ -8831,7 +8839,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // POP AF
     oc = 753;
-    i = { 10, 10, 0, INST{
+    i = { 14, 14, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.word = CREATE_WORD((*m)[(r->SP)++], (*m)[r->SP]);
             r->SP++;
@@ -8844,7 +8852,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP P,nn
     oc = 754;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (!(r->AF.bytes.low.SF))
@@ -8860,7 +8868,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // DI
     oc = 755;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(false);
             z->setIFF2(false);
@@ -8873,7 +8881,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL P,nn
     oc = 756;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::P, nn);
@@ -8886,7 +8894,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // PUSH AF
     oc = 757;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->AF.bytes.high;
@@ -8901,7 +8909,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // OR n
     oc = 758;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             r->AF.bytes.high = or(r->AF.bytes.high, d[0], r);
         },
@@ -8913,7 +8921,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 30
     oc = 759;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -8929,7 +8937,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RET M
     oc = 760;
-    i = { 5, 11, 0, INST{
+    i = { 9, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             retc(r, m, RetCondition::M);
         },
@@ -8953,7 +8961,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // JP M,nn
     oc = 762;
-    i = { 10, 10, 2, INST{
+    i = { 14, 14, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             if (r->AF.bytes.low.SF)
@@ -8969,7 +8977,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // EI
     oc = 763;
-    i = { 4, 4, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             z->setIFF1(true);
             z->setIFF2(true);
@@ -8982,7 +8990,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CALL M,nn
     oc = 764;
-    i = { 10, 17, 2, INST{
+    i = { 14, 21, 2, INST{
             Z80Registers* r = z->getRegisters();
             uint16_t nn = CREATE_WORD(d[0], d[1]);
             callc(r, m, RetCondition::M, nn);
@@ -8997,7 +9005,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // CP n
     oc = 766;
-    i = { 7, 7, 1, INST{
+    i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -(d[0]), r, SUB8);
             r->AF.bytes.low.NF = 1;
@@ -9010,7 +9018,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // RST 38
     oc = 767;
-    i = { 11, 11, 0, INST{
+    i = { 15, 15, 0, INST{
             Z80Registers* r = z->getRegisters();
             r->SP--;
             (*m)[r->SP] = r->PC >> 8;
@@ -10026,7 +10034,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
 
     // LDD
     oc = 932;
-    i = { 16, 16, 0, INST{
+    i = { 8, 8, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->DE.word] = (*m)[r->HL.word];
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, 0);
