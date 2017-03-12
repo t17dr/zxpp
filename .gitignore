@@ -1,6 +1,15 @@
 
 # Created by https://www.gitignore.io/api/visualstudio,visualstudiocode,c++
 
+*.rom
+*.v27
+*.asm
+*.bin
+*.zip
+shaders/
+*.i
+*.v06
+
 ### VisualStudioCode ###
 .vscode/*
 #!.vscode/settings.json

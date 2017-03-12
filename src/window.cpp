@@ -33,9 +33,6 @@ SDL_Window* createWindow(int width, int height, const char * title)
         return nullptr;
     }
 
-    /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    // SDL_GL_SetSwapInterval(1);
-
     glewExperimental = true;
     glewInit();
     glLogLastError();

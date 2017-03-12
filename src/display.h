@@ -35,8 +35,6 @@ class Display {
     private:
         Spectrum48KMemory* m_memory;
         uint8_t m_pixels[DISPLAY_WIDTH*DISPLAY_HEIGHT*3];
-        //SDL_Texture* m_texture;
-        //SDL_Renderer* m_renderer;
 
         std::vector<GLfloat> m_vertexBuffer;
         std::vector<GLfloat> m_UVs;

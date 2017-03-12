@@ -2,13 +2,10 @@
 
 Display::Display(Spectrum48KMemory* memory)
     : m_memory(memory),
-      //m_renderer(renderer),
       m_inverted(false),
       m_frames(0)
 {
     // TODO: error handling
-    // m_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
-    //                 DISPLAY_WIDTH, DISPLAY_HEIGHT);
     generateVertexBuffer();
     generateUVs();
 
@@ -49,7 +46,6 @@ Display::Display(Spectrum48KMemory* memory)
 
 Display::~Display()
 {
-    // SDL_DestroyTexture(m_texture);
     glDeleteBuffers(1, &m_vboID);
 	glDeleteBuffers(1, &m_uvID);
 	glDeleteProgram(m_programID);
@@ -60,11 +56,6 @@ Display::~Display()
 void Display::draw()
 {
     // TODO: error handling
-
-    // void* pixels;
-    //int pitch;
-
-    // SDL_LockTexture(m_texture, NULL, &pixels, &pitch);
 
     for (uint8_t y = 0; y < DISPLAY_HEIGHT; y++)
     {
@@ -103,8 +94,6 @@ void Display::draw()
         }
     }
 
-    // SDL_UnlockTexture(m_texture);
-    // SDL_RenderCopy(m_renderer, m_texture, NULL, NULL);
     glDraw();
 
     m_frames++;
@@ -126,18 +115,15 @@ void Display::glDraw()
     glBindTexture(GL_TEXTURE_2D, m_textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0, GL_BGR, GL_UNSIGNED_BYTE, m_pixels);
     glUniform1i(m_samplerID, 0);
-    // glBindVertexArray(m_vaoID);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
     glEnableVertexAttribArray(1);
-    // glBindVertexArray(m_vaoID);
     glBindBuffer(GL_ARRAY_BUFFER, m_uvID);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-    // glLogLastError();
 }
 
 void Display::generateVertexBuffer()
