@@ -19,7 +19,7 @@ SDL_Window* createWindow(int width, int height, const char * title)
 
     std::cout << "Creating window..." << std::endl;
     mainwindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+        width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!mainwindow)
     {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;

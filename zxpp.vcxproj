@@ -21,11 +21,16 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\window.cpp" />
-    <ClCompile Include="src\z80.cpp" />    
-    <ClCompile Include="src\instructions.cpp" />    
-    <ClCompile Include="src\display.cpp" />    
-    <ClCompile Include="src\utils.cpp" />    
-    <ClCompile Include="src\gl_utils.cpp" />    
+    <ClCompile Include="src\z80.cpp" />
+    <ClCompile Include="src\instructions.cpp" />
+    <ClCompile Include="src\display.cpp" />
+    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\gl_utils.cpp" />
+    <ClCompile Include="src\gui.cpp" />
+    <ClCompile Include="src\3rdparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\3rdparty\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\3rdparty\imgui\imgui.cpp" />
+    <ClCompile Include="src\3rdparty\imgui\impl\imgui_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defines.h" />
@@ -38,6 +43,15 @@
     <ClInclude Include="src\display.h" />
     <ClInclude Include="src\devices.h" />
     <ClInclude Include="src\gl_utils.h" />
+    <ClInclude Include="src\gui.h" />
+    <ClInclude Include="src\3rdparty\imgui\stb_rect_pack.h" />
+    <ClInclude Include="src\3rdparty\imgui\stb_textedit.h" />
+    <ClInclude Include="src\3rdparty\imgui\stb_truetype.h" />
+    <ClInclude Include="src\3rdparty\imgui\imgui_internal.h" />
+    <ClInclude Include="src\3rdparty\imgui\imgui.h" />
+    <ClInclude Include="src\3rdparty\imgui\imconfig.h" />
+    <ClInclude Include="src\3rdparty\imgui\impl\imgui_impl.h" />
+    <ClInclude Include="src\3rdparty\iconfont\IconsFontAwesome.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>

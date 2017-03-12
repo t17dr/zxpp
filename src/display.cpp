@@ -53,7 +53,7 @@ Display::~Display()
 	glDeleteVertexArrays(1, &m_vaoID);
 }
 
-void Display::draw()
+void Display::draw(int windowWidth, int windowHeight)
 {
     // TODO: error handling
 
@@ -94,7 +94,7 @@ void Display::draw()
         }
     }
 
-    glDraw();
+    glDraw(windowWidth, windowHeight);
 
     m_frames++;
     if (m_frames > 15)
@@ -104,10 +104,10 @@ void Display::draw()
     }
 }
 
-void Display::glDraw()
+void Display::glDraw(int width, int height)
 {
     glUseProgram(m_programID);
-    mat4 mvp = multiply(projectionOrtho(DISPLAY_WIDTH, DISPLAY_HEIGHT, -1.0f, 1.0f),
+    mat4 mvp = multiply(projectionOrtho((GLfloat)width, (GLfloat)height, -1.0f, 1.0f),
         identityMatrix());
     GLuint MatrixID = glGetUniformLocation(m_programID, "MVP");
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, mvp.data());

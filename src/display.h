@@ -20,7 +20,7 @@ class Display {
     public:
         Display(Spectrum48KMemory* memory);
         ~Display();
-        void draw();
+        void draw(int windowWidth, int windowHeight);
     protected:
         // Vertex buffer for two triangles of the display
         void generateVertexBuffer();
@@ -31,7 +31,7 @@ class Display {
         GLuint linkShaderProgram(GLuint vertexShaderID, GLuint fragmentShaderID);
 
         // Draw generated pixel buffer using openGL
-        void glDraw();
+        void glDraw(int windowWidth, int windowHeight);
     private:
         Spectrum48KMemory* m_memory;
         uint8_t m_pixels[DISPLAY_WIDTH*DISPLAY_HEIGHT*3];
