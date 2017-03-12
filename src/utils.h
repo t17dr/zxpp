@@ -7,6 +7,11 @@
 #include <type_traits>
 #include <limits>
 #include <assert.h>
+#include <string>
+#include <fstream>
+#include <streambuf>
+
+std::string readFileToString(std::string filename);
 
 // Take two bytes (Low, High) and create word
 #define CREATE_WORD(L, H) (((uint16_t) L) | (((uint16_t) H) << 8))

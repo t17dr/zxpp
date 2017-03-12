@@ -24,6 +24,8 @@
     <ClCompile Include="src\z80.cpp" />    
     <ClCompile Include="src\instructions.cpp" />    
     <ClCompile Include="src\display.cpp" />    
+    <ClCompile Include="src\utils.cpp" />    
+    <ClCompile Include="src\gl_utils.cpp" />    
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\defines.h" />
@@ -35,6 +37,7 @@
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\display.h" />
     <ClInclude Include="src\devices.h" />
+    <ClInclude Include="src\gl_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>
@@ -103,10 +106,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\glew;C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2_ttf.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2_ttf.lib;SDL2.lib;SDL2main.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -115,10 +118,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\glew;C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2_ttf.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2_ttf.lib;SDL2.lib;SDL2main.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -129,12 +132,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\glew;C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SDL2_ttf.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2_ttf.lib;SDL2.lib;SDL2main.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -145,12 +148,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\programovani\zxpp\zxpp\inc\glew;C:\programovani\zxpp\zxpp\inc\SDL_TTF;C:\programovani\zxpp\zxpp\inc\SDL2;C:\programovani\zxpp\zxpp\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SDL2_ttf.lib;SDL2.lib;SDL2main.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2_ttf.lib;SDL2.lib;SDL2main.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>

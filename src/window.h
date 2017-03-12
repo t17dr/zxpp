@@ -5,6 +5,8 @@
 #include <SDL_syswm.h>
 
 #include <iostream>
+#include <glew.h>
+#include "gl_utils.h"
 
 // Create new SDL window
 SDL_Window* createWindow(int width, int height, const char * title);
