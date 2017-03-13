@@ -1,7 +1,10 @@
 #pragma once
 
 #include "3rdparty/imgui/impl/imgui_impl.h"
+#include "3rdparty/noc_file_dialog.h"
 #include <SDL.h>
+#include <cstring>
+
 #include "emulator.h"
 
 class Gui {

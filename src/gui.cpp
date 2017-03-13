@@ -46,17 +46,33 @@ void Gui::renderMenu()
 
 void Gui::renderLoadRomWindow()
 {
-    ImGui::SetNextWindowSize(ImVec2(400,200), ImGuiSetCond_FirstUseEver);
-    if (!ImGui::Begin("Load ROM", (bool*)true, ImGuiWindowFlags_NoTitleBar
-            | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar
-            | ImGuiWindowFlags_NoCollapse))
+    ImGui::SetNextWindowSize(ImVec2(400,70), NULL);
+    if (!ImGui::Begin("Load ROM", &m_renderLoadROM, ImGuiWindowFlags_NoResize 
+        | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse))
     {
         ImGui::End();
         return;
     }
 
+    ImGui::PushItemWidth(-50);
     static char fileStr[260] = "48.rom";
-    ImGui::InputText("ROM file", fileStr, 260);
+    ImGui::InputText("", fileStr, 260);
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton("..."))
+    {
+        const char* file = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, NULL, NULL, "48.rom");
+        if (file != NULL)
+        {
+            if (strlen(file) < 260)
+            {
+                strcpy(fileStr, file);
+            } else 
+            {
+                std::cerr << "File path too long (>260 characters)" << std::endl;
+            }
+        }
+    }
 
     if (ImGui::Button("Load")) 
     {
@@ -64,6 +80,7 @@ void Gui::renderLoadRomWindow()
         m_emu->reset();
         m_renderLoadROM = false;
     }
+    ImGui::SameLine();
     if (ImGui::Button("Cancel")) { m_renderLoadROM = false; }
 
     ImGui::End();

@@ -35,6 +35,8 @@ inline bool fileExists (const std::string& name) {
 
 int main(int argc, char* args[])
 {
+    static bool showImguiDemo = false;
+
     SDL_Window* window = createWindow(800, 600, "ZX++");
     if (window == nullptr)
 	{
@@ -83,6 +85,13 @@ int main(int argc, char* args[])
                         break;
                 }
             }
+            if (e.type == SDL_KEYDOWN)
+            {
+                if (e.key.keysym.sym == SDLK_F1)
+                {
+                    showImguiDemo = !showImguiDemo;
+                }
+            }
         }
 
         if (emu.loop())
@@ -94,7 +103,10 @@ int main(int argc, char* args[])
             fps = "ZXPP | FPS: " + fps;
             SDL_SetWindowTitle(window, fps.c_str());
   
-            // ImGui::ShowTestWindow();
+            if (showImguiDemo)
+            {
+                ImGui::ShowTestWindow();
+            }
             gui.draw();
             ImGui::Render();
 
