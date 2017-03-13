@@ -27,6 +27,7 @@
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\gl_utils.cpp" />
     <ClCompile Include="src\gui.cpp" />
+    <ClCompile Include="src\emulator.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui.cpp" />
@@ -44,6 +45,7 @@
     <ClInclude Include="src\devices.h" />
     <ClInclude Include="src\gl_utils.h" />
     <ClInclude Include="src\gui.h" />
+    <ClInclude Include="src\emulator.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_rect_pack.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_textedit.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_truetype.h" />

@@ -15,6 +15,7 @@
 // #include "tests/tests.h"
 #include "display.h"
 #include "gui.h"
+#include "emulator.h"
 
 #include <fstream>
 #include <random>
@@ -26,8 +27,6 @@
 #include <sstream> // stringstream
 
 #include "utils.h"
-
-#define REFRESH_RATE (1.0/50.0)
 
 inline bool fileExists (const std::string& name) {
     struct stat buffer;
@@ -42,25 +41,12 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
+    Emulator emu(window);
     ImGui_ImplSdlGL3_Init(window);
-
-    Z80 proc;
-    Spectrum48KMemory memory;
-
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(0,255);
-    auto dice = std::bind ( distribution, generator );
-    for (int i = 0; i < memory.screen_size + memory.screenColor_size; i++)
-    {
-        int dice_roll = dice();
-        *(memory.screenMemory + i) = (uint8_t) dice_roll;
-    }
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
-
-    proc.init();
 
     std::string file = "48.rom";
 
@@ -68,28 +54,9 @@ int main(int argc, char* args[])
     {
         file = std::string(args[1]);
     }
-    std::ifstream inf;
-    inf.open(file, std::ios::in|std::ios::binary);
-
-    inf.seekg (0, std::ios::end);
-    int length = (int)inf.tellg();
-    inf.seekg (0, std::ios::beg);
-
-    inf.read((char *)memory.ROM, length);
-
-    inf.close();
-
-    Display display(&memory);
-
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLogLastError();
-
-    Gui gui;
-
-	SDL_GL_SwapWindow(window);
-
-    auto start = std::chrono::high_resolution_clock::now();
+    
+    emu.loadROM(file);
+    Gui gui(&emu);
 
     // Main loop
 	bool quit = false;
@@ -118,29 +85,16 @@ int main(int argc, char* args[])
             }
         }
 
-
-        auto now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> timeSpan = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
-
-        if (timeSpan.count() >= REFRESH_RATE)
+        if (emu.loop())
         {
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            ImGui_ImplSdlGL3_NewFrame(window);
             std::stringstream stream;
-            stream << std::fixed << std::setprecision(1) << 1.0f/(float)timeSpan.count();
+            stream << std::fixed << std::setprecision(1) << 1.0f/(float)emu.getDeltaTime();
             std::string fps = stream.str();
             fps = "ZXPP | FPS: " + fps;
             SDL_SetWindowTitle(window, fps.c_str());
-            start = std::chrono::high_resolution_clock::now();
-
-            int w, h;
-            SDL_GetWindowSize(window, &w, &h);
-
-            proc.simulateFrame(&memory);
-            display.draw(w, h);
-            ImGui::ShowTestWindow();
+  
+            // ImGui::ShowTestWindow();
             gui.draw();
             ImGui::Render();
 
