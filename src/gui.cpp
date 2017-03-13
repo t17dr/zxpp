@@ -38,6 +38,19 @@ void Gui::renderMenu()
         {
             if (ImGui::MenuItem("Reset machine", "CTRL+R")) { m_emu->reset(); }
             if (ImGui::MenuItem("Settings", "CTRL+K")) {}
+            if (ImGui::BeginMenu("Display scale"))
+            {
+                static float s = m_emu->getDisplay()->getScale();
+                ImGui::SliderFloat("Scale", &s, 0.1f, 10.0f);
+                if (ImGui::Button("1:1")) { s = 1.0f; }
+                ImGui::SameLine();
+                if (ImGui::Button("2:1")) { s = 2.0f; }
+                ImGui::SameLine();
+                if (ImGui::Button("4:1")) { s = 4.0f; }
+                ImGui::EndMenu();
+
+                m_emu->getDisplay()->setScale(s); 
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

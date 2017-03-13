@@ -21,6 +21,9 @@ class Display {
         Display(Spectrum48KMemory* memory);
         ~Display();
         void draw(int windowWidth, int windowHeight);
+
+        float getScale();
+        void setScale(float scale);
     protected:
         // Vertex buffer for two triangles of the display
         void generateVertexBuffer();
@@ -44,6 +47,8 @@ class Display {
         GLuint m_textureID;
         GLuint m_samplerID;
         GLuint m_uvID;
+
+        float m_scale;
 
         // Are the flashing colors currently inverted?
         bool m_inverted;

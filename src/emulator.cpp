@@ -77,3 +77,8 @@ void Emulator::reset()
     init();
     loadROM(m_ROMfile);
 }
+
+Display* Emulator::getDisplay()
+{
+    return &m_display;
+}

@@ -29,6 +29,8 @@ class Emulator {
         double getDeltaTime();
 
         void reset();
+
+        Display* getDisplay();
     protected:
         void init();
     private:

@@ -47,6 +47,17 @@ mat4 multiply(mat4 a, mat4 b)
     return mat;
 }
 
+mat4 scaleMatrix(float x, float y)
+{
+    mat4 mat = {
+        x, 0, 0, 0,
+        0, y, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    return mat;
+}
+
 void _glLogLastError(int line, char* file)
 {
     GLenum err = glGetError();

@@ -3,7 +3,8 @@
 Display::Display(Spectrum48KMemory* memory)
     : m_memory(memory),
       m_inverted(false),
-      m_frames(0)
+      m_frames(0),
+      m_scale(2.0f)
 {
     // TODO: error handling
     generateVertexBuffer();
@@ -108,7 +109,7 @@ void Display::glDraw(int width, int height)
 {
     glUseProgram(m_programID);
     mat4 mvp = multiply(projectionOrtho((GLfloat)width, (GLfloat)height, -1.0f, 1.0f),
-        identityMatrix());
+        scaleMatrix(m_scale, m_scale));
     GLuint MatrixID = glGetUniformLocation(m_programID, "MVP");
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, mvp.data());
     glActiveTexture(GL_TEXTURE0);
@@ -218,4 +219,14 @@ GLuint Display::linkShaderProgram(GLuint vertexShaderID, GLuint fragmentShaderID
     }
 
     return programID;
+}
+
+float Display::getScale()
+{
+    return m_scale;
+}
+
+void Display::setScale(float scale)
+{
+    m_scale = scale;
 }
