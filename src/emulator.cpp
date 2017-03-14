@@ -4,7 +4,8 @@
 Emulator::Emulator(SDL_Window* window)
     : m_window(window),
       m_memory(),
-      m_display(&m_memory)
+      m_display(&m_memory),
+      m_proc(&m_memory)
 {
     init();
     m_prevFrameTime = std::chrono::high_resolution_clock::now();
@@ -57,7 +58,7 @@ bool Emulator::loop()
         int w, h;
         SDL_GetWindowSize(m_window, &w, &h);
 
-        m_proc.simulateFrame(&m_memory);
+        m_proc.simulateFrame();
         m_display.draw(w, h);
 
         return true;

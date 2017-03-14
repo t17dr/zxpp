@@ -1,11 +1,14 @@
 #include "z80.h"
 
-int parseNextInstruction(uint8_t* location)
+int Z80::parseNextInstruction()
 {
+    uint16_t location = m_registers.PC;
     std::vector<uint8_t> bytes;
-    while (prefixes.find(*location) != prefixes.end())
+
+    // Do not use memory's operator[] to circumvent memory contention emulation
+    while (prefixes.find(m_memory->memory[location]) != prefixes.end())
     {
-        bytes.push_back(*location);
+        bytes.push_back((*m_memory)[location]);
         location++;
     }
 
@@ -14,7 +17,7 @@ int parseNextInstruction(uint8_t* location)
         // if the prefixes are DDCB or FDCB, then the opcode is in forth byte after displacement byte
         location++;
     }
-    bytes.push_back(*location);
+    bytes.push_back((*m_memory)[location]);
     
     if ( bytes.size() > 1 && bytes[1] == 0xED ) { bytes[0] = 0; }     // Ignore other prefixes before ED
 
@@ -66,7 +69,8 @@ void Z80::init()
     m_instructionSet = z80InstructionSet();
 }
 
-Z80::Z80()
+Z80::Z80(Spectrum48KMemory* m)
+    : m_memory(m)
 {
     init();
     m_cyclesSinceLastFrame = 0;
@@ -112,7 +116,7 @@ void Z80::setInterruptMode(int m)
     m_interruptMode = m;
 }
 
-int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
+int Z80::runInstruction(int instBytes)
 {
     Instruction instruction = (*m_instructionSet)[instBytes];
 
@@ -125,13 +129,13 @@ int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
     }
     for (; i < instruction.numDataBytes; i++)
     {
-        data.push_back((*m).memory[m_registers.PC + i]);
+        data.push_back((*m_memory)[m_registers.PC + i]);
     }
 
     m_registers.PC += instruction.numDataBytes;
     auto prevPC = m_registers.PC;
 
-    instruction.execute(this, m, data);
+    instruction.execute(this, m_memory, data);
 
     int cyclesTaken = instruction.cycles;
     if (m_registers.PC != prevPC)       // Jump was taken
@@ -148,31 +152,28 @@ int Z80::runInstruction(int instBytes, Spectrum48KMemory* m)
     return cyclesTaken;
 }
 
-void Z80::nextInstruction(Spectrum48KMemory* m)
+void Z80::nextInstruction()
 {
-    // using namespace std::chrono;
-    // auto start = high_resolution_clock::now();
-
-    int instruction = parseNextInstruction(&(m->begin())[m_registers.PC]);
+    int instruction = parseNextInstruction();
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
     m_registers.PC += numBytes;
-    int cycles = runInstruction(instruction, m);
+    int cycles = runInstruction(instruction);
 
     m_cyclesSinceLastFrame += cycles;
 
 }
 
-void Z80::simulateFrame(Spectrum48KMemory* m)
+void Z80::simulateFrame()
 {
     while ( m_cyclesSinceLastFrame <= (1.0/50.0) / CLOCK_TIME )
     {
-        nextInstruction(m);
+        nextInstruction();
     }
     m_cyclesSinceLastFrame = 0;
 }
 
 
-void Z80::printState(Spectrum48KMemory* m)
+void Z80::printState()
 {
     std::cout << std::hex;
     std::cout << "S = " << m_registers.AF.bytes.low.SF << " Z = " << m_registers.AF.bytes.low.ZF;
@@ -189,7 +190,7 @@ void Z80::printState(Spectrum48KMemory* m)
     std::cout << " DEx = " << m_registers.DEx.word << " HLx = " << m_registers.HLx.word;
     std::cout << " IX = " << m_registers.IX.word << " IY = " << m_registers.IY.word << std::endl;
 
-    std::cout << "(HL) = " << +(m->memory[m_registers.HL.word]) << std::endl;
+    std::cout << "(HL) = " << +(m_memory->memory[m_registers.HL.word]) << std::endl;
 
 }
 

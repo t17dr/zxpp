@@ -24,9 +24,6 @@ static const std::set<uint8_t> prefixes = { 0xDD, 0xFD, 0xED, 0xCB };
 
 #define CLOCK_TIME ( 1.0 / 3500000.0 )
 
-// Parse the next instruction from given memory location
-int parseNextInstruction(uint8_t* location);
-
 struct Word {                   // Endianness dependent!
     uint8_t low;
     uint8_t high;
@@ -125,7 +122,7 @@ class Z80IOPorts {
 
 class Z80 {
     public:
-        Z80();
+        Z80(Spectrum48KMemory* m);
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
         Z80IOPorts* getIoPorts();
@@ -136,12 +133,18 @@ class Z80 {
         int getInterruptMode();
         void setInterruptMode(int m);
 
-        void simulateFrame(Spectrum48KMemory* m);
+        void simulateFrame();
 
-        void printState(Spectrum48KMemory* m);
+        void printState();
+    protected:
+        // Parse the next instruction from given memory location
+        int parseNextInstruction();
     private:
-        void nextInstruction(Spectrum48KMemory* m);
-        int runInstruction(int instruction, Spectrum48KMemory* m);
+        void nextInstruction();
+        int runInstruction(int instruction);
+
+        Spectrum48KMemory* m_memory;
+
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;
         bool m_IFF1;                    // Interrupt flip-flops
