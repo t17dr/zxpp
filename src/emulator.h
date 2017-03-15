@@ -5,6 +5,8 @@
 #include "z80.h"
 #include "memory.h"
 #include "display.h"
+#include "ula.h"
+#include "keyboard.h"
 
 #include <string>
 #include <random>
@@ -31,13 +33,20 @@ class Emulator {
         void reset();
 
         Display* getDisplay();
+
+        void processEvent(SDL_Event e);
+        std::vector<SDL_Keycode>* getPressedKeys();
     protected:
         void init();
     private:
         Z80 m_proc;
         Spectrum48KMemory m_memory;
         Display m_display;
+        ULA m_ula;
+        Keyboard m_keyboard;
         std::string m_ROMfile;
+
+        std::vector<SDL_Keycode> m_pressedKeys;
 
         SDL_Window* m_window;
 

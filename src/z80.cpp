@@ -69,8 +69,9 @@ void Z80::init()
     m_instructionSet = z80InstructionSet();
 }
 
-Z80::Z80(Spectrum48KMemory* m)
-    : m_memory(m)
+Z80::Z80(Spectrum48KMemory* m, ULA* ula)
+    : m_memory(m),
+      m_ula(ula)
 {
     init();
     m_cyclesSinceLastFrame = 0;
@@ -209,13 +210,46 @@ void Z80IOPorts::writeToPort(uint16_t port, uint8_t value)
 
 uint8_t Z80IOPorts::readPort(uint16_t port)
 {
+    uint8_t result = 0xFF;
     for (IDevice* d : m_devices)
     {
         uint8_t data;
         if (d->sendData(data, port))
         {
-            return data;
+            result &= data;
         }
     }
-    return 0;
+    return result;
+}
+
+void Z80::nmi()
+{
+    if (!m_IFF1) { return; }
+    m_IFF1 = false; m_IFF2 = false;
+    int cycles;
+    switch(m_interruptMode)
+    {
+        case 0:
+            // Not used by the ULA, not completely implemented
+            runInstruction(255);   // RST 38
+            m_cyclesSinceLastFrame += 13;
+            break;
+        case 1:
+            cycles = runInstruction(255);   // RST 38
+            m_cyclesSinceLastFrame += cycles + 2;
+            break;
+        case 2:
+            // Data bus value not implemented
+            uint16_t pos = m_registers.IR.bytes.high * 256 + 255;
+            uint8_t low = (*m_memory)[pos];
+            uint8_t high = (*m_memory)[pos+1];
+            uint16_t address = CREATE_WORD(low, high);
+            m_registers.SP--;
+            (*m_memory)[m_registers.SP] = m_registers.PC >> 8;
+            m_registers.SP--;
+            (*m_memory)[m_registers.SP] = m_registers.PC & 0xFF;
+            m_registers.PC = address;
+            m_cyclesSinceLastFrame += 19;
+            break;
+    }
 }

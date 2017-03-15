@@ -5,9 +5,12 @@ Emulator::Emulator(SDL_Window* window)
     : m_window(window),
       m_memory(),
       m_display(&m_memory),
-      m_proc(&m_memory)
+      m_ula(),
+      m_keyboard(this),
+      m_proc(&m_memory, &m_ula)
 {
     init();
+    m_proc.getIoPorts()->registerDevice((IDevice*)&m_keyboard);
     m_prevFrameTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -58,9 +61,11 @@ bool Emulator::loop()
         int w, h;
         SDL_GetWindowSize(m_window, &w, &h);
 
+        m_proc.nmi();
         m_proc.simulateFrame();
         m_display.draw(w, h);
 
+        m_pressedKeys.clear();
         return true;
     }
 
@@ -82,4 +87,17 @@ void Emulator::reset()
 Display* Emulator::getDisplay()
 {
     return &m_display;
+}
+
+void Emulator::processEvent(SDL_Event e)
+{
+    if (e.type == SDL_KEYDOWN)
+    {
+        m_pressedKeys.push_back(e.key.keysym.sym);
+    }
+}
+
+std::vector<SDL_Keycode>* Emulator::getPressedKeys()
+{
+    return &m_pressedKeys;
 }

@@ -6,6 +6,9 @@
 #include "memory.h"
 #include "instructions.h"
 #include "devices.h"
+#include "ula.h"
+
+#define CREATE_WORD(L, H) (((uint16_t) L) | (((uint16_t) H) << 8))
 
 #include <iostream>
 #include <stdint.h>
@@ -122,7 +125,7 @@ class Z80IOPorts {
 
 class Z80 {
     public:
-        Z80(Spectrum48KMemory* m);
+        Z80(Spectrum48KMemory* m, ULA* ula);
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
         Z80IOPorts* getIoPorts();
@@ -135,6 +138,9 @@ class Z80 {
 
         void simulateFrame();
 
+        // Non-maskable interrupt
+        void nmi();
+
         void printState();
     protected:
         // Parse the next instruction from given memory location
@@ -144,6 +150,7 @@ class Z80 {
         int runInstruction(int instruction);
 
         Spectrum48KMemory* m_memory;
+        ULA* m_ula;
 
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;

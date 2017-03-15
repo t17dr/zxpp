@@ -69,6 +69,7 @@ int main(int argc, char* args[])
         {
             ImGui_ImplSdlGL3_ProcessEvent(&e);
             gui.handleInput(e);
+            emu.processEvent(e);
             if (e.type == SDL_QUIT)
             {
                 quit = true;
