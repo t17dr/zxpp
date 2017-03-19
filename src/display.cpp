@@ -11,36 +11,61 @@ Display::Display(Spectrum48KMemory* memory)
     generateUVs();
 
     glGenVertexArrays(1, &m_vaoID);
+    glLogLastError();
     glBindVertexArray(m_vaoID);
+    glLogLastError();
     glGenBuffers(1, &m_vboID); // vertices
+    glLogLastError();
     glBindBuffer(GL_ARRAY_BUFFER, m_vboID);
+    glLogLastError();
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * m_vertexBuffer.size(), m_vertexBuffer.data(), GL_STATIC_DRAW);
+    glLogLastError();
     glGenBuffers(1, &m_uvID);   // UVs
+    glLogLastError();
     glBindBuffer(GL_ARRAY_BUFFER, m_uvID);
+    glLogLastError();
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * m_UVs.size(), m_UVs.data(), GL_STATIC_DRAW);
+    glLogLastError();
 
     glGenTextures(1, &m_textureID);
+    glLogLastError();
     glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glLogLastError();
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glLogLastError();
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glLogLastError();
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glLogLastError();
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glLogLastError();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0, GL_BGR, GL_UNSIGNED_BYTE, m_pixels);
+    glLogLastError();
 
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
     std::string vertexShaderCode = readFileToString(VERTEX_SHADER_FILE);
     std::string fragmentShaderCode = readFileToString(FRAGMENT_SHADER_FILE);
     compileShader(vertexShaderCode, vertexShaderID);
+    glLogLastError();
     compileShader(fragmentShaderCode, fragmentShaderID);
+    glLogLastError();
     GLuint programID = linkShaderProgram(vertexShaderID, fragmentShaderID);
+    glLogLastError();
     glDetachShader(programID, vertexShaderID);
+    glLogLastError();
     glDetachShader(programID, fragmentShaderID);
+    glLogLastError();
 
     glDeleteShader(vertexShaderID);
+    glLogLastError();
     glDeleteShader(fragmentShaderID);
+    glLogLastError();
 
     m_samplerID = glGetUniformLocation(programID, "inTexture");
+
+    std::cout << "OpenGL buffers initialized" << std::endl;
+    glLogLastError();
 
     m_programID = programID;
 }
@@ -110,6 +135,7 @@ void Display::glDraw(int width, int height)
     glUseProgram(m_programID);
     mat4 mvp = multiply(projectionOrtho((GLfloat)width, (GLfloat)height, -1.0f, 1.0f),
         scaleMatrix(m_scale, m_scale));
+
     GLuint MatrixID = glGetUniformLocation(m_programID, "MVP");
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, mvp.data());
     glActiveTexture(GL_TEXTURE0);
@@ -129,6 +155,8 @@ void Display::glDraw(int width, int height)
 
 void Display::generateVertexBuffer()
 {
+    std::cout << "Display size: " << DISPLAY_WIDTH << " x " << DISPLAY_HEIGHT << std::endl;
+
     m_vertexBuffer.push_back(-0.5f * DISPLAY_WIDTH);
     m_vertexBuffer.push_back(-0.5f * DISPLAY_HEIGHT);
     m_vertexBuffer.push_back(0.0f);
@@ -177,6 +205,8 @@ void Display::generateUVs()
 
 bool Display::compileShader(std::string code, GLuint shaderID)
 {
+    std::cout << "Compiling " << code.c_str() << "..." << std::endl;
+
     GLint Result = GL_FALSE;
     int InfoLogLength;
 
@@ -195,28 +225,37 @@ bool Display::compileShader(std::string code, GLuint shaderID)
         return false;
     }
 
+    std::cout << "Success" << std::endl;
+
     return true;
 }
 
 GLuint Display::linkShaderProgram(GLuint vertexShaderID, GLuint fragmentShaderID)
 {
+    std::cout << "Linking shader program..." << std::endl;
     GLint Result = GL_FALSE;
     int InfoLogLength;
 
     GLuint programID = glCreateProgram();
+    glLogLastError();
     glAttachShader(programID, vertexShaderID);
+    glLogLastError();
     glAttachShader(programID, fragmentShaderID);
+    glLogLastError();
     glLinkProgram(programID);
+    glLogLastError();
 
     // Check the program
     glGetProgramiv(programID, GL_LINK_STATUS, &Result);
+    if (Result == GL_FALSE) { std::cerr << "Link error" << std::endl; }
     glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &InfoLogLength);
     if (InfoLogLength > 0) {
         std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
         glGetProgramInfoLog(programID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-        std::cerr << ProgramErrorMessage[0] << std::endl;
+        std::cerr << "Error: " << ProgramErrorMessage[0] << std::endl;
         return -1;
     }
+    std::cout << "Successful" << std::endl;
 
     return programID;
 }

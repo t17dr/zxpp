@@ -7,6 +7,8 @@
 #include <vector>
 #include <glew.h>
 
+#include "3rdparty/imgui/imgui.h"
+
 #include "utils.h"
 #include "gl_utils.h"
 
