@@ -7,7 +7,8 @@ Emulator::Emulator(SDL_Window* window)
       m_display(&m_memory),
       m_ula(),
       m_keyboard(this),
-      m_proc(&m_memory, &m_ula)
+      m_debugger(),
+      m_proc(&m_memory, &m_ula, &m_debugger)
 {
     init();
     m_proc.getIoPorts()->registerDevice((IDevice*)&m_keyboard);
@@ -48,13 +49,26 @@ bool Emulator::loop()
 {
     auto now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> timeSpan = std::chrono::duration_cast<std::chrono::duration<double>>(now - m_prevFrameTime);
+    if (m_debugger.shouldBreak()) 
+    { 
+        if (timeSpan.count() >= REFRESH_RATE)
+        {
+            ImGui_ImplSdlGL3_NewFrame(m_window);
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            int w, h;
+            SDL_GetWindowSize(m_window, &w, &h);
+            m_display.draw(w, h);
+            return true;
+        }
+        return false;
+    }
     if (timeSpan.count() >= REFRESH_RATE)
     {
+        ImGui_ImplSdlGL3_NewFrame(m_window);
         m_delta = timeSpan;
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        ImGui_ImplSdlGL3_NewFrame(m_window);
 
         m_prevFrameTime = std::chrono::high_resolution_clock::now();
 
@@ -87,6 +101,11 @@ void Emulator::reset()
 Display* Emulator::getDisplay()
 {
     return &m_display;
+}
+
+Debugger* Emulator::getDebugger()
+{
+    return &m_debugger;
 }
 
 void Emulator::processEvent(SDL_Event e)

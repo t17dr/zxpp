@@ -21,6 +21,8 @@
 #include <array>
 #include <memory>
 
+class Debugger;
+
 typedef std::tuple<uint8_t, uint8_t, uint8_t> opcode;
 
 static const std::set<uint8_t> prefixes = { 0xDD, 0xFD, 0xED, 0xCB };
@@ -125,7 +127,7 @@ class Z80IOPorts {
 
 class Z80 {
     public:
-        Z80(Spectrum48KMemory* m, ULA* ula);
+        Z80(Spectrum48KMemory* m, ULA* ula, Debugger* debugger);
         void init();                    // Set power-on defaults
         Z80Registers* getRegisters();
         Z80IOPorts* getIoPorts();
@@ -151,6 +153,7 @@ class Z80 {
 
         Spectrum48KMemory* m_memory;
         ULA* m_ula;
+        Debugger* m_debugger;
 
         Z80Registers m_registers;
         Z80IOPorts m_ioPorts;

@@ -10,6 +10,7 @@
 #include <SDL_syswm.h>
 #include <glew.h>
 #include "imgui_impl.h"
+#include "../../iconfont/IconsFontAwesome.h"
 
 // Data
 static double       g_Time = 0.0f;
@@ -172,6 +173,11 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
 {
 	// Build texture atlas
 	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontDefault();
+	ImFontConfig config;
+	config.MergeMode = true;
+	const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	io.Fonts->AddFontFromFileTTF("fonts/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
 	unsigned char* pixels;
 	int width, height;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits for OpenGL3 demo because it is more likely to be compatible with user's existing shader.

@@ -30,6 +30,7 @@
     <ClCompile Include="src\emulator.cpp" />
     <ClCompile Include="src\ula.cpp" />
     <ClCompile Include="src\keyboard.cpp" />
+    <ClCompile Include="src\debugger.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui.cpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="src\emulator.h" />
     <ClInclude Include="src\ula.h" />
     <ClInclude Include="src\keyboard.h" />
+    <ClInclude Include="src\debugger.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_rect_pack.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_textedit.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_truetype.h" />

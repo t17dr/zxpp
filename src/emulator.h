@@ -8,6 +8,8 @@
 #include "ula.h"
 #include "keyboard.h"
 
+#include "debugger.h"
+
 #include <string>
 #include <random>
 #include <fstream>
@@ -33,6 +35,7 @@ class Emulator {
         void reset();
 
         Display* getDisplay();
+        Debugger* getDebugger();
 
         void processEvent(SDL_Event e);
         std::vector<SDL_Keycode>* getPressedKeys();
@@ -44,6 +47,7 @@ class Emulator {
         Display m_display;
         ULA m_ula;
         Keyboard m_keyboard;
+        Debugger m_debugger;
         std::string m_ROMfile;
 
         std::vector<SDL_Keycode> m_pressedKeys;

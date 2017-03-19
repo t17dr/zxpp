@@ -1,4 +1,5 @@
 #include "z80.h"
+#include "debugger.h"
 
 int Z80::parseNextInstruction()
 {
@@ -69,9 +70,10 @@ void Z80::init()
     m_instructionSet = z80InstructionSet();
 }
 
-Z80::Z80(Spectrum48KMemory* m, ULA* ula)
+Z80::Z80(Spectrum48KMemory* m, ULA* ula, Debugger* debugger)
     : m_memory(m),
-      m_ula(ula)
+      m_ula(ula),
+      m_debugger(debugger)
 {
     init();
     m_cyclesSinceLastFrame = 0;
@@ -144,21 +146,37 @@ int Z80::runInstruction(int instBytes)
         cyclesTaken = instruction.cyclesOnJump;
     }
 
-    // if (m_registers.PC >= 0x0adc && m_registers.PC < 0x1180)
-    if (m_registers.PC >= 0x1601)
-    {
-        //printState(m);
-    }
-
     return cyclesTaken;
 }
 
 void Z80::nextInstruction()
 {
+    std::map<int, Breakpoint>* breakpoints = m_debugger->getBreakpoints();
+    for (auto it = breakpoints->begin(); it != breakpoints->end(); ++it)
+    {
+        if ( *(it->second.getEnabled()) && *( it->second.getAddress()) == m_registers.PC )
+        {
+            // TODO: podminky
+            m_debugger->breakExecution();
+        }
+    }
     int instruction = parseNextInstruction();
     int numBytes = ( instruction >= 5*256 ) ? 3 : ( instruction >= 256 ) ? 2 : 1;
     m_registers.PC += numBytes;
     int cycles = runInstruction(instruction);
+
+    if (m_debugger->shouldBreak())
+    {
+        InstructionTrace trace;
+        trace.address = m_registers.PC - numBytes;
+        trace.registers = m_registers;
+        trace.IFF1 = m_IFF1;
+        trace.IFF2 = m_IFF2;
+        trace.interruptMode = m_interruptMode;
+        trace.frameCycleNumber = m_cyclesSinceLastFrame;
+        trace.mnemonic = "NOP"; // TODO: mnemonic
+        m_debugger->addTrace(trace);
+    }
 
     m_cyclesSinceLastFrame += cycles;
 

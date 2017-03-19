@@ -47,7 +47,6 @@ int main(int argc, char* args[])
     ImGui_ImplSdlGL3_Init(window);
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
-    // TODO: inkrementovat PC před(!) vykonanim instrukce, zkontrolovat ze skoky jdou spravne
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
 
     std::string file = "48.rom";

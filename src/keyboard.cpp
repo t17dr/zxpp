@@ -27,7 +27,7 @@ bool Keyboard::sendData(uint8_t& out, uint16_t port)
 {
     ImGui::SetNextWindowSize(ImVec2(500,200), NULL);
     std::vector<SDL_Keycode>* keys = m_emu->getPressedKeys();
-    if (keys->size() > 0)
+    /*if (keys->size() > 0)
     {
     if (!ImGui::Begin("Keyboard", (bool*)true, ImVec2(0, 30), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
     {
@@ -44,7 +44,7 @@ bool Keyboard::sendData(uint8_t& out, uint16_t port)
         }
         ImGui::Text("No key!");
         ImGui::End();
-    }
+    }*/
     out = 0x1F; // TODO: change (to 0xFF?) when upper 3 bits of 0xFE port are implemented
     if ((port & 0x01) == 0)     // Port 0xFE
     {
@@ -58,14 +58,14 @@ bool Keyboard::sendData(uint8_t& out, uint16_t port)
             // Check if key in column n is pressed
             if (std::find(keys->begin(), keys->end(), codes[m][n]) != keys->end())
             {
-                ImGui::SetNextWindowPos(ImVec2(10, 10));
+                /*ImGui::SetNextWindowPos(ImVec2(10, 10));
                 if (!ImGui::Begin("Keyboard", (bool*)true, ImVec2(0, 30), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
                 {
                     ImGui::End();
                     // return false;
                 }
                 ImGui::Text("Pressed: (%d,%d)", m, n);
-                ImGui::End();
+                ImGui::End();*/
                 out &= ~(1 << n);
             }
             }
