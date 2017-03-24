@@ -121,3 +121,8 @@ std::vector<SDL_Keycode>* Emulator::getPressedKeys()
 {
     return &m_pressedKeys;
 }
+
+Spectrum48KMemory* Emulator::getMemory()
+{
+    return &m_memory;
+}

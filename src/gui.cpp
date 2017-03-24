@@ -24,6 +24,10 @@ void Gui::draw()
     {
         renderDebugger();
     }
+    if (m_renderMemoryEditor)
+    {
+        renderMemoryEditor();
+    }
 }
 
 void Gui::handleInput(SDL_Event &e)
@@ -976,4 +980,10 @@ void Gui::renderDebugger()
     ImGui::EndGroup();
 
     ImGui::End();
+}
+
+void Gui::renderMemoryEditor()
+{
+    static MemoryEditor memory_editor;
+    memory_editor.Draw("Memory", m_emu->getMemory()->memory, m_emu->getMemory()->size);
 }

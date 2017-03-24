@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 struct Spectrum48KMemory {
-    uint8_t memory[0xFFFF+1];
+    uint8_t memory[0xFFFF];
 
     uint8_t* ROM = &memory[0x0000];
     uint8_t* screenMemory = &memory[0x4000];
@@ -19,6 +19,7 @@ struct Spectrum48KMemory {
     uint16_t printerBuffer_size = 0x00FF;
     uint16_t systemVariables_size = 0x00BF;
     uint16_t userMemory_size = 0xA28C;
+    uint16_t size = 0xFFFF;
 
     inline uint8_t& operator[](uint16_t i)
     {

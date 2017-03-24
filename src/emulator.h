@@ -36,6 +36,7 @@ class Emulator {
 
         Display* getDisplay();
         Debugger* getDebugger();
+        Spectrum48KMemory* getMemory();
 
         void processEvent(SDL_Event e);
         std::vector<SDL_Keycode>* getPressedKeys();
