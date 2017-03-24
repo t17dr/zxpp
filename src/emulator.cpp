@@ -49,7 +49,7 @@ bool Emulator::loop()
 {
     auto now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> timeSpan = std::chrono::duration_cast<std::chrono::duration<double>>(now - m_prevFrameTime);
-    if (m_debugger.shouldBreak()) 
+    if (m_debugger.shouldBreak() && !m_debugger.shouldBreakNextFrame())
     { 
         if (timeSpan.count() >= REFRESH_RATE)
         {
@@ -63,7 +63,7 @@ bool Emulator::loop()
         }
         return false;
     }
-    if (timeSpan.count() >= REFRESH_RATE)
+    if ((timeSpan.count() >= REFRESH_RATE) || (m_debugger.shouldBreakNextFrame()))
     {
         ImGui_ImplSdlGL3_NewFrame(m_window);
         m_delta = timeSpan;
@@ -80,6 +80,7 @@ bool Emulator::loop()
         m_display.draw(w, h);
 
         m_pressedKeys.clear();
+        m_debugger.endLoop();
         return true;
     }
 

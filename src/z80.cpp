@@ -119,21 +119,28 @@ void Z80::setInterruptMode(int m)
     m_interruptMode = m;
 }
 
-int Z80::runInstruction(int instBytes)
+std::vector<uint8_t> Z80::getInstructionData(Instruction inst, int instIndex, uint16_t PC)
 {
-    Instruction instruction = (*m_instructionSet)[instBytes];
-
     std::vector<uint8_t> data;
     int i = 0;
-    if ( instBytes >= 2304 && instBytes <= 2815 )
+    if ( instIndex >= 2304 && instIndex <= 2815 )
     {
         // in DDCB and FDCB instructions, data byte is before opcode
         i = -1;
     }
-    for (; i < instruction.numDataBytes; i++)
+    for (; i < inst.numDataBytes; i++)
     {
-        data.push_back((*m_memory)[m_registers.PC + i]);
+        data.push_back((*m_memory)[PC + i]);
     }
+
+    return data;
+}
+
+int Z80::runInstruction(int instBytes)
+{
+    Instruction instruction = (*m_instructionSet)[instBytes];
+
+    std::vector<uint8_t> data = getInstructionData(instruction, instBytes, m_registers.PC);
 
     m_registers.PC += instruction.numDataBytes;
     auto prevPC = m_registers.PC;
@@ -154,10 +161,43 @@ void Z80::nextInstruction()
     std::map<int, Breakpoint>* breakpoints = m_debugger->getBreakpoints();
     for (auto it = breakpoints->begin(); it != breakpoints->end(); ++it)
     {
+        // TODO: move to function?
         if ( *(it->second.getEnabled()) && *( it->second.getAddress()) == m_registers.PC )
         {
-            // TODO: podminky
-            m_debugger->breakExecution();
+            if ( (*(it->second.getCondition())) == BreakpointCondition::NONE)
+            {
+                m_debugger->breakExecution();
+                break;
+            }
+            uint16_t conditionValue = conditionToRegisterValue(*(it->second.getCondition()),
+                &m_registers);
+            bool conditionMet = true;
+            switch (*(it->second.getOperator()))
+            {
+                case BreakpointConditionOperator::GT:
+                    conditionMet = conditionValue > *(it->second.getConditionNumber());
+                    break;
+                case BreakpointConditionOperator::LT:
+                    conditionMet = conditionValue < *(it->second.getConditionNumber());
+                    break;
+                case BreakpointConditionOperator::EQ:
+                    conditionMet = conditionValue == *(it->second.getConditionNumber());
+                    break;
+                case BreakpointConditionOperator::LE:
+                    conditionMet = conditionValue <= *(it->second.getConditionNumber());
+                    break;
+                case BreakpointConditionOperator::GE:
+                    conditionMet = conditionValue >= *(it->second.getConditionNumber());
+                    break;
+                case BreakpointConditionOperator::NE:
+                    conditionMet = conditionValue != *(it->second.getConditionNumber());
+                    break;
+            }
+            if (conditionMet)
+            {
+                m_debugger->breakExecution();
+                break;
+            }
         }
     }
     int instruction = parseNextInstruction();
@@ -167,6 +207,7 @@ void Z80::nextInstruction()
 
     if (m_debugger->shouldBreak())
     {
+        // TODO: move to function?
         InstructionTrace trace;
         trace.address = m_registers.PC - numBytes;
         trace.registers = m_registers;
@@ -174,7 +215,15 @@ void Z80::nextInstruction()
         trace.IFF2 = m_IFF2;
         trace.interruptMode = m_interruptMode;
         trace.frameCycleNumber = m_cyclesSinceLastFrame;
-        trace.mnemonic = "NOP"; // TODO: mnemonic
+        Instruction inst = (*m_instructionSet)[instruction];
+        trace.mnemonic = inst.mnemonic;
+        trace.bytes = getInstructionData(inst, instruction, m_registers.PC - inst.numDataBytes);
+        std::vector<uint8_t> opcodeBytes;
+        for (int i = 0; i < numBytes; ++i)
+        {
+            opcodeBytes.push_back((*m_memory)[m_registers.PC - inst.numDataBytes - numBytes + i]);
+        }
+        trace.opcodeBytes = opcodeBytes;
         m_debugger->addTrace(trace);
     }
 

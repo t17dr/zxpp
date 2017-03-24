@@ -325,6 +325,52 @@ def validate_timing(lines, timings, fix=False):
     else:
         print(str(bad) + " errors in timing values.")
 
+def insert_mnemonic(line, mnemonic, bracket_pos):
+    """ Insert given timing information to an instruction """
+    edited = ""
+    edited = line[0:bracket_pos+1] + ",\n        "
+    edited += '"' + mnemonic + '"'
+
+    edited += line[bracket_pos+1:-1]
+
+    return edited
+
+def add_mnemonics(lines):
+    ''' Add mnemonics from comments to a string member variable '''
+    prev_comment = ""
+    open_brackets = close_brackets = 0
+
+    print("Adding mnemonics...")
+
+    inside_instruction = False
+    for key, line in enumerate(lines):
+        comment = re.match(r"\s*//\s*(.+)\s*", line)
+        if comment != None and not inside_instruction:
+            prev_comment = comment.group(1)
+
+        is_inst = re.match(r"\s*(i|Instruction i)\s*\=\s*\{", line)
+        if is_inst != None:
+            inside_instruction = True
+            open_brackets = line.count("{")
+            close_brackets = line.count("}")
+            if open_brackets == close_brackets:
+                # find second to last occurence of }
+                inst_close = line.rfind("}", 0, line.rfind("}"))
+
+                lines[key] = insert_mnemonic(line, prev_comment, inst_close)
+                inside_instruction = False
+        elif open_brackets > close_brackets:
+            if line.find("{") != -1:
+                open_brackets += line.count("{")
+
+            bracket = line.rfind("}")
+            if bracket != -1:
+                close_brackets += line.count("}")
+                if lines[key+1].count("};") > 0:
+                    lines[key] = insert_mnemonic(line, prev_comment, bracket)
+                    inside_instruction = False
+
+
 def validate_operands(lines, timings):
     ''' Validate operand size and order '''
     pass
@@ -360,6 +406,7 @@ def main():
     else:
         add_timing(lines, timings)
         validate_timing(lines, timings)
+        add_mnemonics(lines)
 
         process(lines)
         lines = add_info(lines)

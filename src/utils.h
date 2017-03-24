@@ -16,6 +16,9 @@ std::string readFileToString(std::string filename);
 // Take two bytes (Low, High) and create word
 #define CREATE_WORD(L, H) (((uint16_t) L) | (((uint16_t) H) << 8))
 
+// Used to break out of code blocks
+#define SKIPPABLE for (int i = 0; i == 0; i = 1)
+
 // Circular bit rotation left
 template <typename INT>
 constexpr INT rol(INT val)

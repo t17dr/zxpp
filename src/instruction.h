@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 class Z80;
 
@@ -29,6 +30,7 @@ struct Instruction {
 
     MachineCycleType machineCycles[7];  // Types of machine cycles of this instruction
     int machineCycleTimes[7];   // T cycles of each machine cycle
+    std::string mnemonic;
 };
 
 #endif

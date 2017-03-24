@@ -147,6 +147,8 @@ class Z80 {
     protected:
         // Parse the next instruction from given memory location
         int parseNextInstruction();
+
+        std::vector<uint8_t> getInstructionData(Instruction inst, int instIndex, uint16_t PC);
     private:
         void nextInstruction();
         int runInstruction(int instruction);

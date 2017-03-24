@@ -4,6 +4,8 @@
 #include <map>
 #include <utility>
 #include <iostream>
+#include <iomanip>
+#include <sstream> // stringstream
 
 #include "z80.h"
 
@@ -15,6 +17,9 @@ enum class BreakpointCondition {
 enum class BreakpointConditionOperator {
     GT, LT, EQ, GE, LE, NE
 };
+
+// Get value of the register specified by c
+uint16_t conditionToRegisterValue(BreakpointCondition c, Z80Registers* r);
 
 class Breakpoint {
     public:
@@ -47,6 +52,8 @@ struct InstructionTrace {
     bool IFF1, IFF2;
     int interruptMode;
     int frameCycleNumber;
+    std::vector<uint8_t> bytes;
+    std::vector<uint8_t> opcodeBytes;
 };
 
 class Debugger {
@@ -63,10 +70,19 @@ class Debugger {
         int selectedTrace;
 
         void breakExecution();
+        void continueExecution();
         bool shouldBreak();
+        void breakNextFrame();
+        bool shouldBreakNextFrame();
+
+        void endLoop();
+
+        // Replace mnemonic data with actual current data
+        void parseMnemonicData(InstructionTrace* t);
     private:
         std::map<int, Breakpoint> m_breakpoints;
         std::vector<InstructionTrace> m_trace;
         int m_lastIndex;
         bool m_breakExecution;
+        bool m_breakNextFrame;
 };

@@ -1794,7 +1794,6 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = {0,0,0x00D3};
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            // (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)] = r->AF.bytes.high;
             z->getIoPorts()->writeToPort(CREATE_WORD(d[0], r->AF.bytes.high), r->AF.bytes.high);
         }
     };
@@ -1888,7 +1887,6 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = {0,0,0x00DB};
     i = { 11, 11, 1, INST{
             Z80Registers* r = z->getRegisters();
-            // r->AF.bytes.high = (*(z->getIoPorts()))[CREATE_WORD(d[0], r->AF.bytes.high)];
             r->AF.bytes.high = z->getIoPorts()->readPort(CREATE_WORD(d[0], r->AF.bytes.high));
         }
     };
@@ -2032,7 +2030,6 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = {0,0,0x00E9};
     i = { 4, 4, 0, INST{
             Z80Registers* r = z->getRegisters();
-            //r->PC = (*m)[r->HL.word];
             r->PC = r->HL.word;     // wtf
         }
     };
