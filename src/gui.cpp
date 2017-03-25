@@ -475,22 +475,83 @@ void Gui::renderDebugger()
                 ImGui::Indent(60.0f);
                 ImGui::Text(aBin.c_str());
                 ImGui::Unindent(207.0f);
-                ImGui::TreeAdvanceToLabelPos(); ImGui::Text("F");
-                stream << std::hex << std::setw(2) << std::setfill('0') << +((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte);
-                std::string fHex(stream.str());
-                std::string fDec = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte);
-                std::string fBin = std::bitset<8>((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte).to_string();
-                stream.str(std::string());
-                ImGui::SameLine();
-                ImGui::Indent(87.0f);
-                ImGui::Text(fHex.c_str());
-                ImGui::SameLine();
-                ImGui::Indent(60.0f);
-                ImGui::Text(fDec.c_str());
-                ImGui::SameLine();
-                ImGui::Indent(60.0f);
-                ImGui::Text(fBin.c_str());
-                ImGui::Unindent(207.0f);
+                // ImGui::TreeAdvanceToLabelPos(); ImGui::Text("F");
+                if(ImGui::TreeNode("F"))
+                {
+                    stream << std::hex << std::setw(2) << std::setfill('0') << +((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte);
+                    std::string fHex(stream.str());
+                    std::string fDec = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte);
+                    std::string fBin = std::bitset<8>((*trace)[debugger->selectedTrace].registers.AF.bytes.low.byte).to_string();
+                    stream.str(std::string());
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(fHex.c_str());
+                    ImGui::SameLine();
+                    ImGui::Indent(60.0f);
+                    ImGui::Text(fDec.c_str());
+                    ImGui::SameLine();
+                    ImGui::Indent(60.0f);
+                    ImGui::Text(fBin.c_str());
+                    ImGui::Unindent(192.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("CF");
+                    std::string cf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.CF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(cf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("NF");
+                    std::string nf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.NF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(nf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("PF");
+                    std::string pf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.PF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(pf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("XF");
+                    std::string xf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.XF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(xf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("HF");
+                    std::string hf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.HF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(hf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("YF");
+                    std::string yf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.YF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(yf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("ZF");
+                    std::string zf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.ZF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(zf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreeAdvanceToLabelPos(); ImGui::Text("SF");
+                    std::string sf = std::to_string((*trace)[debugger->selectedTrace].registers.AF.bytes.low.SF);
+                    ImGui::SameLine();
+                    ImGui::Indent(72.0f);
+                    ImGui::Text(sf.c_str());
+                    ImGui::Unindent(72.0f);
+
+                    ImGui::TreePop();
+                }
                 ImGui::TreePop();
             }
             if(ImGui::TreeNode("BC"))
