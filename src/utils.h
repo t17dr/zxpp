@@ -10,6 +10,11 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 std::string readFileToString(std::string filename);
 
@@ -18,6 +23,9 @@ std::string readFileToString(std::string filename);
 
 // Used to break out of code blocks
 #define SKIPPABLE for (int i = 0; i == 0; i = 1)
+
+// Split a string to vector using whitespace as delimiter
+std::vector<std::string> splitByWhitespace(std::string str);
 
 // Circular bit rotation left
 template <typename INT>

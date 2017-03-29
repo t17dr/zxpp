@@ -126,6 +126,7 @@ class Z80IOPorts {
 };
 
 class Z80 {
+    friend class Z80Tester;
     public:
         Z80(Spectrum48KMemory* m, ULA* ula, Debugger* debugger);
         void init();                    // Set power-on defaults

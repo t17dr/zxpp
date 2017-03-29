@@ -31,6 +31,7 @@
     <ClCompile Include="src\ula.cpp" />
     <ClCompile Include="src\keyboard.cpp" />
     <ClCompile Include="src\debugger.cpp" />
+    <ClCompile Include="src\tests\z80_tests.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\3rdparty\imgui\imgui.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="src\ula.h" />
     <ClInclude Include="src\keyboard.h" />
     <ClInclude Include="src\debugger.h" />
+    <ClInclude Include="src\tests\z80_tests.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_rect_pack.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_textedit.h" />
     <ClInclude Include="src\3rdparty\imgui\stb_truetype.h" />

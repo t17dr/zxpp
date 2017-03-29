@@ -67,6 +67,8 @@ void Z80::init()
     m_registers.DEx.word = 0xFFFF;
     m_registers.HLx.word = 0xFFFF;
 
+    m_cyclesSinceLastFrame = 0;
+
     m_instructionSet = z80InstructionSet();
 }
 

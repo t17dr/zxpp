@@ -16,6 +16,7 @@
 #include "display.h"
 #include "gui.h"
 #include "emulator.h"
+#include "tests/z80_tests.h"
 
 #include <fstream>
 #include <random>
@@ -45,6 +46,15 @@ int main(int argc, char* args[])
 
     Emulator emu(window);
     ImGui_ImplSdlGL3_Init(window);
+
+
+    // Redirect cerr to log file
+    std::ofstream out("output_log.txt");
+    std::streambuf *coutbuf = std::cerr.rdbuf();
+    std::cerr.rdbuf(out.rdbuf());
+    Z80Tester tester;
+    tester.parseTestFiles("tests.in", "tests.expected");
+    tester.runTests();
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)

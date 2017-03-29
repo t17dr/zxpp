@@ -1,6 +1,11 @@
 
 # Created by https://www.gitignore.io/api/visualstudio,visualstudiocode,c++
 
+tests.expected
+tests.in
+output_log.txt
+imgui.ini
+
 *.rom
 *.v27
 *.asm
