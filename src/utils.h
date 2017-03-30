@@ -345,11 +345,14 @@ inline void daa(Z80Registers* r)
 
     uint8_t adjust = 0;
 
-    if ( (A & 0xF) > 9 || H )
+    uint8_t oldA = A;
+
+    if ( ((A & 0xF) > 9) || H )
     {
         A = ( N ) ? A -= 0x06 : A += 0x06;
     }
-    if ( (A & 0xF0) > 0x90 || C )
+    // if ( (A & 0xF0) > 0x90 || C )
+    if ( (oldA > 0x99) || C )
     {
         A = ( N ) ? A -= 0x60 : A += 0x60;
     }

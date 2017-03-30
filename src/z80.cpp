@@ -6,11 +6,29 @@ int Z80::parseNextInstruction()
     uint16_t location = m_registers.PC;
     std::vector<uint8_t> bytes;
 
+    int i = 0;
     // Do not use memory's operator[] to circumvent memory contention emulation
     while (prefixes.find(m_memory->memory[location]) != prefixes.end())
     {
+
         bytes.push_back((*m_memory)[location]);
         location++;
+        if (bytes.size() >= 2 && i > 0 && 
+              ( (bytes[i-1] == 0xFD && bytes[i] == 0xDD) ||
+                (bytes[i-1] == 0xDD && bytes[i] == 0xFD)
+              )
+           )
+        {
+            // if FD and DD are found one after the other, remove the first one
+            // (not a valid prefix)
+            bytes.erase(bytes.begin() + i - 1);
+        }
+        i++;
+        if (bytes.size() == 2 && ( (bytes[0] == 0xDD || bytes[0] == 0xFD) && bytes[1] == 0xCB ))
+        {
+            // Next byte for DDCB or FDCB is data, not another prefix
+            break;
+        }
     }
 
     if (bytes.size() == 2 && ( (bytes[0] == 0xDD || bytes[0] == 0xFD) && bytes[1] == 0xCB ))
@@ -18,9 +36,15 @@ int Z80::parseNextInstruction()
         // if the prefixes are DDCB or FDCB, then the opcode is in forth byte after displacement byte
         location++;
     }
-    bytes.push_back((*m_memory)[location]);
+
+    // In the case of 0xCBCB, 0xCBED the opcode is already the last byte from "prefixes"
+    if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xCB)) )
+    if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xED)) )
+    {
+        bytes.push_back((*m_memory)[location]);
+        if ( bytes.size() > 1 && bytes[1] == 0xED ) { bytes[0] = 0; }     // Ignore other prefixes before ED
+    }
     
-    if ( bytes.size() > 1 && bytes[1] == 0xED ) { bytes[0] = 0; }     // Ignore other prefixes before ED
 
     assert(bytes.size() <= 3);
 

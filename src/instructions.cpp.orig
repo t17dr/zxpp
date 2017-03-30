@@ -917,6 +917,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = {0,0,0x0076};
     i = { 4, 4, 0, INST{
             z->halt();
+            (z->getRegisters()->PC)--;
         }
     };
     (*instructions)[oc] = i;
@@ -7556,8 +7557,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     (*instructions)[oc] = i;
 
     // LDD
-    oc = {0,0xED,0x00A4};
-    i = { 8, 8, 0, INST{
+    oc = {0,0xED,0x00A8};
+    i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
             (*m)[r->DE.word] = (*m)[r->HL.word];
             r->DE.word = add<uint16_t>(r->DE.word, -1, r, 0);
@@ -7573,7 +7574,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     /* 0xEDA5 - 0xEDA7 are NOPs */
 
     // CPD
-    oc = {0,0xED,0x00A8};
+    oc = {0,0xED,0x00A9};
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
             add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8);
@@ -7586,7 +7587,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     (*instructions)[oc] = i;
 
     // IND
-    oc = {0,0xED,0x00A9};
+    oc = {0,0xED,0x00AA};
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
             // (*m)[r->HL.word] = (*(z->getIoPorts()))[r->BC.bytes.low];
@@ -7600,7 +7601,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     (*instructions)[oc] = i;
 
     // OUTD
-    oc = {0,0xED,0x00AA};
+    oc = {0,0xED,0x00AB};
     i = { 16, 16, 0, INST{
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
@@ -8528,6 +8529,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8539,6 +8542,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8550,6 +8555,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8561,6 +8568,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8572,6 +8581,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8583,6 +8594,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8594,6 +8607,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8605,6 +8620,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8616,6 +8633,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8627,6 +8646,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8638,6 +8659,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8649,6 +8672,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8660,6 +8685,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8671,6 +8698,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8682,6 +8711,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8693,6 +8724,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8704,6 +8737,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8715,6 +8750,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8726,6 +8763,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8737,6 +8776,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8748,6 +8789,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8759,6 +8802,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8770,6 +8815,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8781,6 +8828,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8792,6 +8841,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8803,6 +8854,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8814,6 +8867,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8825,6 +8880,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8836,6 +8893,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8847,6 +8906,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8858,6 +8919,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8869,6 +8932,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8880,6 +8945,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8891,6 +8958,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8902,6 +8971,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8913,6 +8984,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8924,6 +8997,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8935,6 +9010,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8946,6 +9023,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8957,6 +9036,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8968,6 +9049,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8979,6 +9062,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -8990,6 +9075,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9001,6 +9088,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9012,6 +9101,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9023,6 +9114,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9034,6 +9127,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9045,6 +9140,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9056,6 +9153,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9067,6 +9166,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9078,6 +9179,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9089,6 +9192,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9100,6 +9205,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9111,6 +9218,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9122,6 +9231,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9133,6 +9244,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         }
     };
     (*instructions)[oc] = i;
@@ -9144,6 +9257,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9155,6 +9270,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->BC.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9166,6 +9283,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9177,6 +9296,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->DE.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9188,6 +9309,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9199,6 +9322,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->HL.bytes.low & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9210,6 +9335,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->HL.word]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;
@@ -9221,6 +9348,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( r->AF.bytes.high & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = ! (r->AF.bytes.low.ZF);
         }
     };
     (*instructions)[oc] = i;

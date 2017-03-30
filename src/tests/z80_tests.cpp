@@ -201,7 +201,18 @@ void Z80Tester::compareResults(Z80TestCase &test, Z80* z80)
 
     // TODO: uncomment when IR handling is implemented
     // assertEqual(z80->m_registers.IR.word, test.outRegisters.IR.word, test, "IR");
-    assertEqual(z80->m_registers.AF.word, test.outRegisters.AF.word, test, "AF");
+    assertEqual(z80->m_registers.AF.bytes.high, test.outRegisters.AF.bytes.high, test, "A");
+
+    assertEqual(z80->m_registers.AF.bytes.low.CF, test.outRegisters.AF.bytes.low.CF, test, "CF");
+    assertEqual(z80->m_registers.AF.bytes.low.NF, test.outRegisters.AF.bytes.low.NF, test, "NF");
+    assertEqual(z80->m_registers.AF.bytes.low.PF, test.outRegisters.AF.bytes.low.PF, test, "PF");
+    // TODO: resit nedokumentovany XF a YF?
+    // assertEqual(z80->m_registers.AF.bytes.low.XF, test.outRegisters.AF.bytes.low.XF, test, "XF");
+    assertEqual(z80->m_registers.AF.bytes.low.HF, test.outRegisters.AF.bytes.low.HF, test, "HF");
+    // assertEqual(z80->m_registers.AF.bytes.low.YF, test.outRegisters.AF.bytes.low.YF, test, "YF");
+    assertEqual(z80->m_registers.AF.bytes.low.ZF, test.outRegisters.AF.bytes.low.ZF, test, "ZF");
+    assertEqual(z80->m_registers.AF.bytes.low.SF, test.outRegisters.AF.bytes.low.SF, test, "SF");
+
     assertEqual(z80->m_registers.BC.word, test.outRegisters.BC.word, test, "BC");
     assertEqual(z80->m_registers.DE.word, test.outRegisters.DE.word, test, "DE");
     assertEqual(z80->m_registers.HL.word, test.outRegisters.HL.word, test, "HL");
