@@ -37,9 +37,11 @@ int Z80::parseNextInstruction()
         location++;
     }
 
-    // In the case of 0xCBCB, 0xCBED the opcode is already the last byte from "prefixes"
+    // In the case of 0xCBCB, 0xCBED, 0xCBDD, 0xCBFD the opcode is already the last byte from "prefixes"
     if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xCB)) )
     if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xED)) )
+    if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xDD)) )
+    if ( !(bytes.size() == 2 && (bytes[0] == 0xCB && bytes[1] == 0xFD)) )
     {
         bytes.push_back((*m_memory)[location]);
         if ( bytes.size() > 1 && bytes[1] == 0xED ) { bytes[0] = 0; }     // Ignore other prefixes before ED
