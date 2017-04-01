@@ -58,6 +58,11 @@ int main(int argc, char* args[])
 
     // TODO: zkontrolovat "practically NOP" instrukce jestli nemaj nastavovat flagy
     // TODO: disablovat maskable interrupty v prubehu DI a EI (+1 instrukce dal u EI)
+    // TODO: cmd line parser
+    // TODO: virtualni klavesnice
+    // TODO: debugger: data pod vlastni zalozku ve vice formatech (base, signed
+    // TODO: debugger: debugger pise nesmyslny raw bytes a adresa (i dosazeny data instrukce?)
+    // po skoku (u ty instrukce skoku, returnu,...)
 
     std::string file = "48.rom";
 

@@ -14,6 +14,7 @@
 #include <random>
 #include <fstream>
 #include <functional>
+#include <algorithm>
 
 #include "3rdparty/imgui/impl/imgui_impl.h"
 

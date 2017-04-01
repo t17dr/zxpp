@@ -79,7 +79,7 @@ bool Emulator::loop()
         m_proc.simulateFrame();
         m_display.draw(w, h);
 
-        m_pressedKeys.clear();
+        // m_pressedKeys.clear();
         m_debugger.endLoop();
         return true;
     }
@@ -111,9 +111,16 @@ Debugger* Emulator::getDebugger()
 
 void Emulator::processEvent(SDL_Event e)
 {
-    if (e.type == SDL_KEYDOWN)
+    switch (e.type)
     {
-        m_pressedKeys.push_back(e.key.keysym.sym);
+        case SDL_KEYDOWN:
+            m_pressedKeys.push_back(e.key.keysym.sym);
+            break;
+        case SDL_KEYUP:
+            m_pressedKeys.erase(
+                std::remove(m_pressedKeys.begin(), m_pressedKeys.end(), e.key.keysym.sym),
+                m_pressedKeys.end());
+            break;
     }
 }
 
