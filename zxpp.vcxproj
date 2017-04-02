@@ -63,6 +63,7 @@
     <ClInclude Include="src\3rdparty\imgui\impl\imgui_impl.h" />
     <ClInclude Include="src\3rdparty\iconfont\IconsFontAwesome.h" />
     <ClInclude Include="src\3rdparty\noc_file_dialog.h" />
+    <ClInclude Include="src\3rdparty\stb_image.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{987C7245-DEE9-4495-81DD-4E203832564C}</ProjectGuid>

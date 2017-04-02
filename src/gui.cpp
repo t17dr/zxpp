@@ -1,13 +1,16 @@
 
 #include "gui.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "3rdparty/stb_image.h"
+
 Gui::Gui(Emulator* emu)
     : m_renderMenu(true),
       m_renderDebugger(false),
       m_renderMemoryEditor(false),
       m_emu(emu)
 {
-
+    uploadTextures();
 }
 
 void Gui::draw()
@@ -28,6 +31,10 @@ void Gui::draw()
     {
         renderMemoryEditor();
     }
+    if (m_renderVirtualKeyboard)
+    {
+        renderVirtualKeyboard();
+    }
 }
 
 void Gui::handleInput(SDL_Event &e)
@@ -46,6 +53,7 @@ void Gui::renderMenu()
         }
         if (ImGui::BeginMenu("Edit"))
         {
+            // TODO: hotkeys
             if (ImGui::MenuItem("Reset machine", "CTRL+R")) { m_emu->reset(); }
             if (ImGui::MenuItem("Settings", "CTRL+K")) {}
             if (ImGui::BeginMenu("Display scale"))
@@ -63,7 +71,12 @@ void Gui::renderMenu()
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Debug"))
+        if (ImGui::BeginMenu("Tools"))
+        {
+            if (ImGui::MenuItem("Virtual keyboard")) { m_renderVirtualKeyboard = true; }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Development"))
         {
             if (ImGui::MenuItem("Debugger")) { m_renderDebugger = true; }
             if (ImGui::MenuItem("Memory")) { m_renderMemoryEditor = true; }
@@ -1047,4 +1060,63 @@ void Gui::renderMemoryEditor()
 {
     static MemoryEditor memory_editor;
     memory_editor.Draw("Memory", m_emu->getMemory()->memory, m_emu->getMemory()->size);
+}
+
+void Gui::uploadTextures()
+{
+    for (auto texture : TEXTURE_FILES)
+    {
+        int x, y, n;
+        unsigned char *data = stbi_load(texture.second.c_str(), &x, &y, &n, 0);
+        GLuint id;
+        glGenTextures(1, &id);
+        glLogLastError();
+        m_textureIDs.insert(std::pair<std::string, GLuint>(texture.first, id));
+        glBindTexture(GL_TEXTURE_2D, id);
+        glLogLastError();
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+        glLogLastError();
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+        glLogLastError();
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        glLogLastError();
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glLogLastError();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glLogLastError();
+        stbi_image_free(data);
+    }
+}
+
+void Gui::renderVirtualKeyboard()
+{
+    ImGui::SetNextWindowSize(ImVec2(760,500), ImGuiSetCond_Once);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f,0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(512, 205.75f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(512, 205.75f), ImVec2(FLT_MAX, FLT_MAX),
+        [](ImGuiSizeConstraintCallbackData* data){
+            // Keep aspect ratio
+            float aspectRatio = data->DesiredSize.x / data->DesiredSize.y;
+            const float epsilon = 0.0001f;
+            const float desiredAspect = 2.48845f;
+            if (aspectRatio > desiredAspect + epsilon || aspectRatio < desiredAspect - epsilon)
+            {
+                data->DesiredSize.y = data->DesiredSize.x / desiredAspect;
+            }
+        });
+    if (!ImGui::Begin("Virtual keyboard", &m_renderVirtualKeyboard, 
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse ))
+    {
+        ImGui::End();
+        ImGui::PopStyleVar(3);
+        return;
+    }
+
+    ImGui::ImageButton((void *)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]), ImGui::GetWindowSize(),
+        ImVec2(0,0), ImVec2(1.0f, 1.0f), 0, ImColor(0,0,0,255));
+
+    ImGui::End();
+    ImGui::PopStyleVar(3);
 }

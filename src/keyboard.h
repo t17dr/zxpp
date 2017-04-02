@@ -15,8 +15,8 @@ class Keyboard : IDevice {
     public:
         Keyboard(Emulator* emu);
 
-        virtual void receiveData(uint8_t data, uint16_t port);
-        virtual bool sendData(uint8_t& out, uint16_t port);
+        virtual void receiveData(uint8_t data, uint16_t port) override;
+        virtual bool sendData(uint8_t& out, uint16_t port) override;
     private:
         Emulator* m_emu;
 
