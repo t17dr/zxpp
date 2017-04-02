@@ -7,6 +7,7 @@
 #include "display.h"
 #include "ula.h"
 #include "keyboard.h"
+#include "gui.h"
 
 #include "debugger.h"
 
@@ -50,6 +51,7 @@ class Emulator {
         ULA m_ula;
         Keyboard m_keyboard;
         Debugger m_debugger;
+        Gui m_gui;
         std::string m_ROMfile;
 
         std::vector<SDL_Keycode> m_pressedKeys;

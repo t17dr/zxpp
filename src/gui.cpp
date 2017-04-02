@@ -1,4 +1,6 @@
 
+#include "emulator.h"
+#include "3rdparty/noc_file_dialog.h"
 #include "gui.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -1090,6 +1092,8 @@ void Gui::uploadTextures()
 
 void Gui::renderVirtualKeyboard()
 {
+    m_virtualKeyboardPressedKeys.clear();
+
     ImGui::SetNextWindowSize(ImVec2(760,500), ImGuiSetCond_Once);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f,0.0f));
@@ -1100,7 +1104,7 @@ void Gui::renderVirtualKeyboard()
             // Keep aspect ratio
             float aspectRatio = data->DesiredSize.x / data->DesiredSize.y;
             const float epsilon = 0.0001f;
-            const float desiredAspect = 2.48845f;
+            const float desiredAspect = /*2.48845f*/ KEYBOARD_TEXTURE_WIDTH / KEYBOARD_TEXTURE_HEIGHT;
             if (aspectRatio > desiredAspect + epsilon || aspectRatio < desiredAspect - epsilon)
             {
                 data->DesiredSize.y = data->DesiredSize.x / desiredAspect;
@@ -1114,9 +1118,44 @@ void Gui::renderVirtualKeyboard()
         return;
     }
 
-    ImGui::ImageButton((void *)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]), ImGui::GetWindowSize(),
-        ImVec2(0,0), ImVec2(1.0f, 1.0f), 0, ImColor(0,0,0,255));
+    // Background
+    ImGui::Image((void *)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]), ImGui::GetWindowSize(),
+        ImVec2(0,0), ImVec2(1.0f, 1.0f));
+    
+    ImVec2 textureSize = ImVec2(KEYBOARD_TEXTURE_WIDTH, KEYBOARD_TEXTURE_HEIGHT);
+
+    int i = 0;
+
+    // Render the keys
+    for (auto key : keyPositionsSizes)
+    {
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImVec2 normalizedPosition = ImVec2(key.second.first.x / textureSize.x, key.second.first.y / textureSize.y);
+        ImVec2 normalizedSize = ImVec2(key.second.second.x / textureSize.x, key.second.second.y / textureSize.y);
+        ImVec2 inWindowSize = ImVec2(normalizedSize.x * windowSize.x, normalizedSize.y * windowSize.y);
+        ImVec2 uvCorner = ImVec2(normalizedPosition.x + normalizedSize.x, normalizedPosition.y + normalizedSize.y);
+        ImVec2 inWindowPosition = ImVec2(normalizedPosition.x * windowSize.x, normalizedPosition.y * windowSize.y + TITLEBAR_HEIGHT);
+
+        ImGui::PushID(i);
+        ImGui::SetCursorPos(inWindowPosition);
+        if (
+            ImGui::ImageButton(
+                    (void*)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]),
+                    inWindowSize, normalizedPosition, uvCorner, 0, ImColor(0,0,0,255)
+                )
+           )
+        {
+            m_virtualKeyboardPressedKeys.push_back(key.first);
+        }
+        ImGui::PopID();
+        i++;
+    }
 
     ImGui::End();
     ImGui::PopStyleVar(3);
+}
+
+std::vector<std::string>* Gui::getVirtualKeyboardPressedKeys()
+{
+    return &m_virtualKeyboardPressedKeys;
 }

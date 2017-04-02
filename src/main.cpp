@@ -72,7 +72,6 @@ int main(int argc, char* args[])
     }
     
     emu.loadROM(file);
-    Gui gui(&emu);
 
     // Main loop
 	bool quit = false;
@@ -82,7 +81,6 @@ int main(int argc, char* args[])
         while (SDL_PollEvent(&e))
         {
             ImGui_ImplSdlGL3_ProcessEvent(&e);
-            gui.handleInput(e);
             emu.processEvent(e);
             if (e.type == SDL_QUIT)
             {
@@ -122,7 +120,7 @@ int main(int argc, char* args[])
             {
                 ImGui::ShowTestWindow();
             }
-            gui.draw();
+            
             ImGui::Render();
 
             SDL_GL_SwapWindow(window);

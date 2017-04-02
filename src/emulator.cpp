@@ -6,7 +6,8 @@ Emulator::Emulator(SDL_Window* window)
       m_memory(),
       m_display(&m_memory),
       m_ula(),
-      m_keyboard(this),
+      m_gui(this),
+      m_keyboard(this, &m_gui),
       m_debugger(),
       m_proc(&m_memory, &m_ula, &m_debugger)
 {
@@ -59,6 +60,7 @@ bool Emulator::loop()
             int w, h;
             SDL_GetWindowSize(m_window, &w, &h);
             m_display.draw(w, h);
+            m_gui.draw();
             return true;
         }
         return false;
@@ -78,6 +80,7 @@ bool Emulator::loop()
         m_proc.nmi();
         m_proc.simulateFrame();
         m_display.draw(w, h);
+        m_gui.draw();
 
         // m_pressedKeys.clear();
         m_debugger.endLoop();
@@ -111,6 +114,8 @@ Debugger* Emulator::getDebugger()
 
 void Emulator::processEvent(SDL_Event e)
 {
+    m_gui.handleInput(e);
+
     switch (e.type)
     {
         case SDL_KEYDOWN:
