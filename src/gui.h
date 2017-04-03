@@ -13,6 +13,7 @@
 #include <bitset>
 #include <map>
 #include <glew.h>
+#include <algorithm>
 
 class Emulator;
 
@@ -21,7 +22,8 @@ class Emulator;
 #define TITLEBAR_HEIGHT 17.0f
 
 const std::map<std::string, std::string> TEXTURE_FILES = {
-    {"TEXTURE_KEYBOARD", "img/keyboard.png"}
+    {"TEXTURE_KEYBOARD", "img/keyboard.png"},
+    {"TEXTURE_KEYBOARD_PRESSED", "img/keyboard_pressed.png"}
 };
 
 // Positions and sizes of the keys for virtual keyboard on the texture

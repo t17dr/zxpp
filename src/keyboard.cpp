@@ -24,6 +24,19 @@ const std::string Keyboard::keyStrings[8][5] = {
     { "ZX_SPACE", "ZX_SYMBOL_SHIFT", "ZX_M", "ZX_N", "ZX_B" }
 };
 
+std::string Keyboard::getKeyStringFromKeycode(SDL_Keycode k)
+{
+    for (int i = 0; i < 8; ++i)
+    for (int j = 0; j < 5; ++j)
+    {
+        if (codes[i][j] == k)
+        {
+            return keyStrings[i][j];
+        }
+    }
+    return std::string("ZX_UNKNOWN");
+}
+
 Keyboard::Keyboard(Emulator* emu, Gui* gui)
 {
     m_emu = emu;

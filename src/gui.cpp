@@ -2,6 +2,7 @@
 #include "emulator.h"
 #include "3rdparty/noc_file_dialog.h"
 #include "gui.h"
+#include "keyboard.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "3rdparty/stb_image.h"
@@ -1125,6 +1126,10 @@ void Gui::renderVirtualKeyboard()
     ImVec2 textureSize = ImVec2(KEYBOARD_TEXTURE_WIDTH, KEYBOARD_TEXTURE_HEIGHT);
 
     int i = 0;
+    static bool pressed[40];
+    static bool lshiftPressed, rshiftPressed;
+
+    std::vector<SDL_Keycode>* realPressed = m_emu->getPressedKeys();
 
     // Render the keys
     for (auto key : keyPositionsSizes)
@@ -1136,17 +1141,38 @@ void Gui::renderVirtualKeyboard()
         ImVec2 uvCorner = ImVec2(normalizedPosition.x + normalizedSize.x, normalizedPosition.y + normalizedSize.y);
         ImVec2 inWindowPosition = ImVec2(normalizedPosition.x * windowSize.x, normalizedPosition.y * windowSize.y + TITLEBAR_HEIGHT);
 
+        for (auto realKey : (*realPressed))
+        {
+            if (key.first == Keyboard::getKeyStringFromKeycode(realKey))
+            {
+                pressed[i] = true;
+            }
+        }
+
         ImGui::PushID(i);
         ImGui::SetCursorPos(inWindowPosition);
         if (
             ImGui::ImageButton(
-                    (void*)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]),
+                    pressed[i] ? (void*)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD_PRESSED"])
+                    : (void*)(intptr_t)(m_textureIDs["TEXTURE_KEYBOARD"]),
                     inWindowSize, normalizedPosition, uvCorner, 0, ImColor(0,0,0,255)
                 )
            )
         {
             m_virtualKeyboardPressedKeys.push_back(key.first);
-        }
+            pressed[i] = true;
+            if (key.first == "ZX_CAPS_SHIFT") { lshiftPressed = !lshiftPressed; }
+            if (key.first == "ZX_SYMBOL_SHIFT") { rshiftPressed = !rshiftPressed; }
+        } else if (key.first == "ZX_CAPS_SHIFT")
+        { 
+            pressed[i] = lshiftPressed;
+            if (lshiftPressed) m_virtualKeyboardPressedKeys.push_back(key.first);
+        } else if (key.first == "ZX_SYMBOL_SHIFT")
+        {
+            pressed[i] = rshiftPressed;
+            if (rshiftPressed) m_virtualKeyboardPressedKeys.push_back(key.first);
+        } else { pressed[i] = false; }
+
         ImGui::PopID();
         i++;
     }

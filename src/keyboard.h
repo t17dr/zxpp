@@ -19,9 +19,6 @@ class Keyboard : IDevice {
 
         virtual void receiveData(uint8_t data, uint16_t port) override;
         virtual bool sendData(uint8_t& out, uint16_t port) override;
-    private:
-        Emulator* m_emu;
-        Gui* m_gui;
 
         // Map keycode to each keyboard key to m x n array
         // m determines the "row", 0 being the A8 (CAPS-V)
@@ -30,4 +27,10 @@ class Keyboard : IDevice {
 
         // Unique strings identifying keys, same layout as "codes"
         static const std::string keyStrings[8][5];
+
+        static std::string getKeyStringFromKeycode(SDL_Keycode k);
+    private:
+        Emulator* m_emu;
+        Gui* m_gui;
+
 };
