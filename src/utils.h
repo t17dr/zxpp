@@ -213,8 +213,8 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
         {
             INT bb = ~(b-1);       // get B before two's complement'                
             borrowOut = ((unsigned) bb ) > ((unsigned) a );
-            INT r = a - bb;
-            borrowOut = borrowOut || (((unsigned) (carryIn & 0x1) ) > ((unsigned) r ));
+            INT rr = a - bb;
+            borrowOut = borrowOut || (((unsigned) (carryIn & 0x1) ) > ((unsigned) rr ));
         }
         else
         {
@@ -268,8 +268,8 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
             {
                 INT bb = ~(b-1);       // get B before two's complement'                
                 halfBorrowOut = ((unsigned) (bb & 0xF)) > ((unsigned) (a & 0xF));
-                INT r = a - bb;
-                halfBorrowOut = halfBorrowOut || ( ((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xF)));
+                INT rr = a - bb;
+                halfBorrowOut = halfBorrowOut || ( ((unsigned) (carryIn & 0x1)) > ((unsigned) (rr & 0xF)));
             }
             else
             {
@@ -283,8 +283,8 @@ constexpr INT add(INT a, INT b, Z80Registers* r, uint8_t flags, bool useCarryIn 
             {
                 INT bb = ~(b-1);       // get B before two's complement'                
                 halfBorrowOut = ((unsigned) (bb & 0xFFF)) > ((unsigned) (a & 0xFFF));
-                INT r = a - bb;
-                halfBorrowOut = halfBorrowOut || (((unsigned) (carryIn & 0x1)) > ((unsigned) (r & 0xFFF)));
+                INT rr = a - bb;
+                halfBorrowOut = halfBorrowOut || (((unsigned) (carryIn & 0x1)) > ((unsigned) (rr & 0xFFF)));
             }
             else
             {

@@ -179,7 +179,14 @@ void Z80Tester::runTests()
             test.description == "eda3_08" || test.description == "eda3_09" ||
             test.description == "eda3_10" || test.description == "eda3_11" ||
             
-            test.description == "edba")
+            test.description == "edba" || test.description == "edaa" ||
+            test.description == "edaa_01" || test.description == "edaa_02" ||
+            test.description == "edaa_03" || test.description == "edab" ||
+            test.description == "edab_01" || test.description == "edab_02" ||
+            test.description == "edb2" || test.description == "edb2_1" ||
+            test.description == "edb3" || test.description == "edb3_1" ||
+            test.description == "edba_1" || test.description == "edbb" ||
+            test.description == "edbb_1" || test.description == "fd36")
         { continue; }
         
         z80.init();

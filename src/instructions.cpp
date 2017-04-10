@@ -10092,9 +10092,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
             z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
-            r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
-            r->AF.bytes.low.ZF = r->BC.bytes.high != 0;
+            r->HL.word = add<uint16_t>(r->HL.word, -1, r, SUB8_NOBORROW);
             r->AF.bytes.low.NF = true;
         },
         4, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::IOW, MachineCycleType::UNUSED, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
@@ -10129,12 +10128,13 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = 945;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8);
+            add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8_NOBORROW);
+            uint8_t old_hlMem = (*m)[r->HL.word];
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
             r->AF.bytes.low.PF = r->BC.word != 0;
             r->AF.bytes.low.NF = true;
-            if (r->BC.word != 0 && r->AF.bytes.high != (*m)[r->HL.word])
+            if (r->BC.word != 0 && r->AF.bytes.high != old_hlMem)
             {
                 r->PC -= 2;
             }
@@ -10171,10 +10171,10 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
             // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
+            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, SUB8_NOBORROW);
             z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, 1, r, 0);
-            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
-            r->AF.bytes.low.ZF = true;
+            // r->AF.bytes.low.ZF = true;
             r->AF.bytes.low.NF = true;
             if (r->BC.bytes.high != 0)
             {
@@ -10215,7 +10215,7 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
     oc = 953;
     i = { 16, 21, 0, INST{
             Z80Registers* r = z->getRegisters();
-            add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8);
+            add<uint8_t>(r->AF.bytes.high, -((*m)[r->HL.word]), r, SUB8_NOBORROW);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
             r->BC.word = add<uint16_t>(r->BC.word, -1, r, 0);
             r->AF.bytes.low.PF = r->BC.word != 0;
@@ -10259,8 +10259,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             // (*(z->getIoPorts()))[r->BC.bytes.low] = (*m)[r->HL.word];
             z->getIoPorts()->writeToPort(r->BC.word, (*m)[r->HL.word]);
             r->HL.word = add<uint16_t>(r->HL.word, -1, r, 0);
-            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, 0);
-            r->AF.bytes.low.ZF = true;
+            r->BC.bytes.high = add<uint8_t>(r->BC.bytes.high, -1, r, SUB8_NOBORROW);
+            // r->AF.bytes.low.ZF = true;
             r->AF.bytes.low.NF = true;
             if (r->BC.bytes.high != 0)
             {
@@ -18500,6 +18500,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18514,6 +18516,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18528,6 +18532,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18542,6 +18548,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18556,6 +18564,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18570,6 +18580,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18584,6 +18596,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 0) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18598,6 +18612,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18612,6 +18628,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18626,6 +18644,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18640,6 +18660,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18654,6 +18676,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18668,6 +18692,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18682,6 +18708,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18696,6 +18724,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 1) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18710,6 +18740,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18724,6 +18756,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18738,6 +18772,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18752,6 +18788,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18766,6 +18804,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18780,6 +18820,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18794,6 +18836,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18808,6 +18852,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 2) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18822,6 +18868,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18836,6 +18884,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18850,6 +18900,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18864,6 +18916,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18878,6 +18932,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18892,6 +18948,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18906,6 +18964,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18920,6 +18980,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 3) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18934,6 +18996,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18948,6 +19012,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18962,6 +19028,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)(((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18976,6 +19044,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -18990,6 +19060,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19004,6 +19076,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19018,6 +19092,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19032,6 +19108,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 4) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19046,6 +19124,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19060,6 +19140,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19074,6 +19156,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19088,6 +19172,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19102,6 +19188,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19116,6 +19204,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19130,6 +19220,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19144,6 +19236,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 5) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19158,6 +19252,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19172,6 +19268,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19186,6 +19284,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19200,6 +19300,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19214,6 +19316,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19228,6 +19332,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19242,6 +19348,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19256,6 +19364,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 6) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = false;
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19270,6 +19380,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19284,6 +19396,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19298,6 +19412,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19312,6 +19428,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19326,6 +19444,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19340,6 +19460,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19354,6 +19476,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
@@ -19368,6 +19492,8 @@ std::shared_ptr<std::array<Instruction, NUM_INSTRUCTIONS>> z80InstructionSet()
             r->AF.bytes.low.ZF = !((bool)( ((*m)[r->IY.word + ((int8_t)d[0])]) & (0x1 << 7) ));
             r->AF.bytes.low.HF = true;
             r->AF.bytes.low.NF = false;
+            r->AF.bytes.low.PF = r->AF.bytes.low.ZF;
+            r->AF.bytes.low.SF = !(r->AF.bytes.low.ZF);
         },
         5, { MachineCycleType::M1R, MachineCycleType::M1R, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::MRD, MachineCycleType::UNUSED, MachineCycleType::UNUSED },
         { 4, 4, 3, 5, 4, 0, 0 },
