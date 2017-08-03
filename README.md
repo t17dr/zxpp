@@ -17,17 +17,15 @@ Contention is currently not yet simulated.
 - Memory and I/O contention
 - Casette emulation / loading
 - Input besides the keyboard
+- Sound
 
 and more.
 
 # Screenshots
 <img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_debugger.png" width="500" alt="Simple debugger, Dear ImGui memory editor" />
-
 <img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_keyboard.png" width="500" alt="Virtual keyboard" />
 
-<img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_asteroids.png" width="250" alt="Playable ROM game" />
-
-<img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_invaders.png" width="250" alt="Playable ROM game" />
+<img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_asteroids.png" width="250" alt="Playable ROM game" /> <img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_invaders.png" width="250" alt="Playable ROM game" />
 <br />
 <img src="https://raw.githubusercontent.com/t17dr/zxpp/master/img/screen_deathstar.png" width="250" alt="Playable ROM game" />
 
